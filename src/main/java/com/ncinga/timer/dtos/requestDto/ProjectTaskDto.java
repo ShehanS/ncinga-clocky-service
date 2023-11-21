@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class NewTaskDto {
+public class ProjectTaskDto {
     private String email_before;
     private String description;
     private String title;

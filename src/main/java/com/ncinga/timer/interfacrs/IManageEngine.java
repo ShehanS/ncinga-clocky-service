@@ -25,5 +25,8 @@ public interface IManageEngine {
 
     List<StatusDto> getProjectStatus(String refreshToken, String projectId) throws RefreshTokenHasExpired;
 
-    AddTaskResponse addTask(String refreshToken, String projectId, AddTaskDto task) throws RefreshTokenHasExpired, JsonProcessingException;
+    ProjectTask addTask(String refreshToken, String projectId, AddEditTaskDto task) throws RefreshTokenHasExpired, JsonProcessingException;
+    ProjectTask updateTask(String refreshToken, String projectId, String taskId, AddEditTaskDto task) throws RefreshTokenHasExpired, JsonProcessingException;
+    ProjectTask getTask(String refreshToken, String projectId, String taskId) throws RefreshTokenHasExpired, JsonProcessingException;
+    DeleteTaskDto deleteTask(String refreshToken, String projectId, String taskId) throws RefreshTokenHasExpired, JsonProcessingException;
 }
