@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProjectTaskDto {
+    private String id;
     private String email_before;
     private String description;
     private String title;

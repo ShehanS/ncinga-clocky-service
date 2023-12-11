@@ -1,9 +1,7 @@
 package com.ncinga.timer.controllers;
 
 import com.ncinga.timer.dtos.requestDto.*;
-import com.ncinga.timer.dtos.responseDto.OwnerResponseDto;
-import com.ncinga.timer.dtos.responseDto.ResponseDto;
-import com.ncinga.timer.dtos.responseDto.TaskDto;
+import com.ncinga.timer.dtos.responseDto.*;
 import com.ncinga.timer.exceptions.RefreshTokenHasExpired;
 import com.ncinga.timer.service.ManageEngineAPIService;
 import com.ncinga.timer.utilities.ResponseCode;
@@ -249,5 +247,82 @@ public class ManageEnginAPIController {
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
         }
     }
+
+    @PostMapping(path = "/projects/{projectId}/tasks/{taskId}/add-worklog")
+    public ResponseEntity<ResponseDto> addWorklog(@PathVariable String projectId, @PathVariable String taskId, @RequestBody WorkLogRequestDto workLogRequestDto, @RequestHeader(value = "Authorization", required = false) String refreshToken) {
+        if (refreshToken == null || refreshToken.isEmpty()) {
+            ResponseDto responseDto = new ResponseDto(null, null, "Authorization key is null or empty", ResponseCode.AUTHORIZATION_TOKEN_NULL);
+            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+        }
+        try {
+            WorkLogResponseDto addedTask = manageEngineAPIService.addWorkLog(refreshToken, projectId, taskId, workLogRequestDto);
+            ResponseDto responseDto = new ResponseDto(null, addedTask, null, ResponseCode.WORKLOG_ADD_SUCCESS);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
+        } catch (RefreshTokenHasExpired e) {
+            ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.REFRESH_TOKEN_HAS_EXPIRED);
+            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+        } catch (Exception e) {
+            ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.WORKLOG_ADD_FAILED);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
+        }
+    }
+
+    @PostMapping(path = "/projects/{projectId}/tasks/{taskId}/worklogs/{worklogId}/edit-worklog")
+    public ResponseEntity<ResponseDto> editWorklog(@PathVariable String projectId, @PathVariable String taskId, @PathVariable String worklogId, @RequestBody WorkLogRequestDto workLogRequestDto, @RequestHeader(value = "Authorization", required = false) String refreshToken) {
+        if (refreshToken == null || refreshToken.isEmpty()) {
+            ResponseDto responseDto = new ResponseDto(null, null, "Authorization key is null or empty", ResponseCode.AUTHORIZATION_TOKEN_NULL);
+            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+        }
+        try {
+            WorkLogResponseDto addedTask = manageEngineAPIService.updateWorkLog(refreshToken, projectId, taskId, worklogId, workLogRequestDto);
+            ResponseDto responseDto = new ResponseDto(null, addedTask, null, ResponseCode.WORKLOG_EDIT_SUCCESS);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
+        } catch (RefreshTokenHasExpired e) {
+            ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.REFRESH_TOKEN_HAS_EXPIRED);
+            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+        } catch (Exception e) {
+            ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.WORKLOG_EDIT_SUCCESS);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
+        }
+    }
+
+    @GetMapping(path = "/projects/{projectId}/tasks/{taskId}/worklogs")
+    public ResponseEntity<ResponseDto> getWorkloads(@PathVariable String projectId, @PathVariable String taskId, @RequestHeader(value = "Authorization", required = false) String refreshToken) {
+        if (refreshToken == null || refreshToken.isEmpty()) {
+            ResponseDto responseDto = new ResponseDto(null, null, "Authorization key is null or empty", ResponseCode.AUTHORIZATION_TOKEN_NULL);
+            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+        }
+        try {
+            WorkLogResponseDto workLogDtoList = manageEngineAPIService.getWorkLogs(refreshToken, projectId, taskId);
+            ResponseDto responseDto = new ResponseDto(null, workLogDtoList, null, ResponseCode.GET_ALL_WORKLOG_SUCCESS);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
+        } catch (RefreshTokenHasExpired e) {
+            ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.REFRESH_TOKEN_HAS_EXPIRED);
+            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+        } catch (Exception e) {
+            ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.GET_ALL_WORKLOG_FAILED);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
+        }
+    }
+
+    @GetMapping(path = "/projects/{projectId}/tasks/{taskId}/worklog-types")
+    public ResponseEntity<ResponseDto> getWorklogTypes(@PathVariable String projectId, @PathVariable String taskId, @RequestHeader(value = "Authorization", required = false) String refreshToken) {
+        if (refreshToken == null || refreshToken.isEmpty()) {
+            ResponseDto responseDto = new ResponseDto(null, null, "Authorization key is null or empty", ResponseCode.AUTHORIZATION_TOKEN_NULL);
+            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+        }
+        try {
+            WorkLogTypeResponseDto workLogDtoList = manageEngineAPIService.getTypes(refreshToken, projectId, taskId);
+            ResponseDto responseDto = new ResponseDto(null, workLogDtoList, null, ResponseCode.GET_ALL_TYPE_SUCCESS);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
+        } catch (RefreshTokenHasExpired e) {
+            ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.REFRESH_TOKEN_HAS_EXPIRED);
+            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+        } catch (Exception e) {
+            ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.GET_ALL_TYPE_SUCCESS);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
+        }
+    }
+
 
 }

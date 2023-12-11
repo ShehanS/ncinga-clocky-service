@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ncinga.timer.dtos.requestDto.*;
 import com.ncinga.timer.dtos.responseDto.OwnerResponseDto;
 import com.ncinga.timer.dtos.responseDto.TaskDto;
+import com.ncinga.timer.dtos.responseDto.WorkLogDto;
+import com.ncinga.timer.dtos.responseDto.WorkLogResponseDto;
 import com.ncinga.timer.exceptions.RefreshTokenHasExpired;
 
 import java.util.List;
@@ -25,8 +27,19 @@ public interface IManageEngine {
 
     List<StatusDto> getProjectStatus(String refreshToken, String projectId) throws RefreshTokenHasExpired;
 
+    WorkLogResponseDto addWorkLog(String refreshToken, String projectId, String taskId, WorkLogRequestDto workLogRequestDto) throws RefreshTokenHasExpired, JsonProcessingException;
+
+    WorkLogResponseDto updateWorkLog(String refreshToken, String projectId, String taskId, String worklogId, WorkLogRequestDto workLogRequestDto) throws RefreshTokenHasExpired, JsonProcessingException;
+
+    WorkLogResponseDto getWorkLogs(String refreshToken, String projectId, String taskId) throws RefreshTokenHasExpired;
+
+    WorkLogResponseDto deleteWorklog(String refreshToken, String projectId, String taskId, String worklogId) throws RefreshTokenHasExpired, JsonProcessingException;
+
     ProjectTask addTask(String refreshToken, String projectId, AddEditTaskDto task) throws RefreshTokenHasExpired, JsonProcessingException;
+
     ProjectTask updateTask(String refreshToken, String projectId, String taskId, AddEditTaskDto task) throws RefreshTokenHasExpired, JsonProcessingException;
+
     ProjectTask getTask(String refreshToken, String projectId, String taskId) throws RefreshTokenHasExpired, JsonProcessingException;
+
     DeleteTaskDto deleteTask(String refreshToken, String projectId, String taskId) throws RefreshTokenHasExpired, JsonProcessingException;
 }

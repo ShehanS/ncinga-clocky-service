@@ -3,10 +3,7 @@ package com.ncinga.timer.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ncinga.timer.dtos.requestDto.*;
-import com.ncinga.timer.dtos.responseDto.OwnerResponseDto;
-import com.ncinga.timer.dtos.responseDto.TaskDeleteResponseDto;
-import com.ncinga.timer.dtos.responseDto.TaskDto;
-import com.ncinga.timer.dtos.responseDto.TaskListResponseDto;
+import com.ncinga.timer.dtos.responseDto.*;
 import com.ncinga.timer.exceptions.RefreshTokenHasExpired;
 import com.ncinga.timer.interfacrs.IManageEngine;
 import org.springframework.beans.factory.annotation.Value;
@@ -409,6 +406,153 @@ public class ManageEngineAPIService implements IManageEngine {
     }
 
     @Override
+    public WorkLogResponseDto addWorkLog(String refreshToken, String projectId, String taskId, WorkLogRequestDto workLogRequestDto) throws RefreshTokenHasExpired, JsonProcessingException {
+        String apiUrl = API + "/projects/" + projectId + "/tasks/" + taskId + "/worklogs";
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jsonString = objectMapper.writeValueAsString(workLogRequestDto);
+        URI uri = UriComponentsBuilder.fromUriString(apiUrl)
+                .queryParam("input_data", jsonString)
+                .build()
+                .encode()
+                .toUri();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", refreshToken);
+        headers.set("Content-Type", "application/x-www-form-urlencoded");
+        headers.set("Accept", "application/vnd.manageengine.sdp.v3+json");
+
+        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<WorkLogResponseDto> responseEntity = restTemplate.exchange(
+                    uri,
+                    HttpMethod.POST,
+                    requestEntity,
+                    WorkLogResponseDto.class
+            );
+            HttpStatus statusCode = (HttpStatus) responseEntity.getStatusCode();
+            return responseEntity.getBody();
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            HttpStatus statusCode = (HttpStatus) e.getStatusCode();
+            if (statusCode == HttpStatus.UNAUTHORIZED) {
+                throw new RefreshTokenHasExpired("Your refresh token has expired, Please refresh page");
+            } else {
+                throw e;
+            }
+        }
+    }
+
+    @Override
+    public WorkLogResponseDto updateWorkLog(String refreshToken, String projectId, String taskId, String worklogId, WorkLogRequestDto workLogRequestDto) throws RefreshTokenHasExpired, JsonProcessingException {
+        String apiUrl = API + "/projects/" + projectId + "/tasks/" + taskId + "/worklogs/" + worklogId;
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jsonString = objectMapper.writeValueAsString(workLogRequestDto);
+        URI uri = UriComponentsBuilder.fromUriString(apiUrl)
+                .queryParam("input_data", jsonString)
+                .build()
+                .encode()
+                .toUri();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", refreshToken);
+        headers.set("Content-Type", "application/x-www-form-urlencoded");
+        headers.set("Accept", "application/vnd.manageengine.sdp.v3+json");
+
+        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<WorkLogResponseDto> responseEntity = restTemplate.exchange(
+                    uri,
+                    HttpMethod.PUT,
+                    requestEntity,
+                    WorkLogResponseDto.class
+            );
+            HttpStatus statusCode = (HttpStatus) responseEntity.getStatusCode();
+            return responseEntity.getBody();
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            HttpStatus statusCode = (HttpStatus) e.getStatusCode();
+            if (statusCode == HttpStatus.UNAUTHORIZED) {
+                throw new RefreshTokenHasExpired("Your refresh token has expired, Please refresh page");
+            } else {
+                throw e;
+            }
+        }
+    }
+
+    @Override
+    public WorkLogResponseDto getWorkLogs(String refreshToken, String projectId, String taskId) throws RefreshTokenHasExpired {
+        String apiUrl = API + "/projects/" + projectId + "/tasks/" + taskId + "/worklogs";
+        URI uri = UriComponentsBuilder.fromUriString(apiUrl)
+                .queryParam("input_data", "{ \n" +
+                        "        \"list_info\" : { \n" +
+                        "            \"row_count\" : 100\n" +
+                        "        } \n" +
+                        "      }")
+                .build()
+                .encode()
+                .toUri();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", refreshToken);
+        headers.set("Content-Type", "application/x-www-form-urlencoded");
+        headers.set("Accept", "application/vnd.manageengine.sdp.v3+json");
+
+        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<WorkLogResponseDto> responseEntity = restTemplate.exchange(
+                    uri,
+                    HttpMethod.GET,
+                    requestEntity,
+                    WorkLogResponseDto.class
+            );
+            HttpStatus statusCode = (HttpStatus) responseEntity.getStatusCode();
+            return responseEntity.getBody();
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            HttpStatus statusCode = (HttpStatus) e.getStatusCode();
+            if (statusCode == HttpStatus.UNAUTHORIZED) {
+                throw new RefreshTokenHasExpired("Your refresh token has expired, Please refresh page");
+            } else {
+                throw e;
+            }
+        }
+    }
+
+    @Override
+    public WorkLogResponseDto deleteWorklog(String refreshToken, String projectId, String taskId, String worklogId) throws RefreshTokenHasExpired, JsonProcessingException {
+        String apiUrl = API + "/projects/" + projectId + "/tasks/" + taskId + "/worklogs/" + worklogId;
+        URI uri = UriComponentsBuilder.fromUriString(apiUrl)
+                .build()
+                .encode()
+                .toUri();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", refreshToken);
+        headers.set("Content-Type", "application/x-www-form-urlencoded");
+        headers.set("Accept", "application/vnd.manageengine.sdp.v3+json");
+
+        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<WorkLogResponseDto> responseEntity = restTemplate.exchange(
+                    uri,
+                    HttpMethod.DELETE,
+                    requestEntity,
+                    WorkLogResponseDto.class
+            );
+            HttpStatus statusCode = (HttpStatus) responseEntity.getStatusCode();
+            return responseEntity.getBody();
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            HttpStatus statusCode = (HttpStatus) e.getStatusCode();
+            if (statusCode == HttpStatus.UNAUTHORIZED) {
+                throw new RefreshTokenHasExpired("Your refresh token has expired, Please refresh page");
+            } else {
+                throw e;
+            }
+        }
+    }
+
+    @Override
     public ProjectTask addTask(String refreshToken, String projectId, AddEditTaskDto task) throws RefreshTokenHasExpired, JsonProcessingException {
         String apiUrl = API + "/projects/" + projectId + "/tasks";
         ObjectMapper objectMapper = new ObjectMapper();
@@ -551,4 +695,51 @@ public class ManageEngineAPIService implements IManageEngine {
     }
 
 
+    public WorkLogTypeResponseDto getTypes(String refreshToken, String projectId, String taskId) throws RefreshTokenHasExpired, JsonProcessingException {
+        String apiUrl = API + "/projects/" + projectId + "/tasks/" + taskId + "/worklogs/worklog_type";
+        URI uri = UriComponentsBuilder.fromUriString(apiUrl)
+                .queryParam("input_data", "{\n" +
+                        "    \"list_info\": {\n" +
+                        "        \"start_index\": 0,\n" +
+                        "        \"row_count\": 50,\n" +
+                        "        \"sort_field\": \"name\",\n" +
+                        "        \"sort_order\": \"asc\",\n" +
+                        "        \"search_criteria\": {\n" +
+                        "            \"field\": \"name\",\n" +
+                        "            \"condition\": \"like\",\n" +
+                        "            \"values\": [\n" +
+                        "                \"\"\n" +
+                        "            ]\n" +
+                        "        }\n" +
+                        "    }\n" +
+                        "}")
+                .build()
+                .encode()
+                .toUri();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", refreshToken);
+        headers.set("Content-Type", "application/x-www-form-urlencoded");
+        headers.set("Accept", "application/vnd.manageengine.sdp.v3+json");
+
+        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<WorkLogTypeResponseDto> responseEntity = restTemplate.exchange(
+                    uri,
+                    HttpMethod.GET,
+                    requestEntity,
+                    WorkLogTypeResponseDto.class
+            );
+            HttpStatus statusCode = (HttpStatus) responseEntity.getStatusCode();
+            return responseEntity.getBody();
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            HttpStatus statusCode = (HttpStatus) e.getStatusCode();
+            if (statusCode == HttpStatus.UNAUTHORIZED) {
+                throw new RefreshTokenHasExpired("Your refresh token has expired, Please refresh page");
+            } else {
+                throw e;
+            }
+        }
+    }
 }
