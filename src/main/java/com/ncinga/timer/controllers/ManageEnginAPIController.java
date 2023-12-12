@@ -286,6 +286,26 @@ public class ManageEnginAPIController {
         }
     }
 
+    @DeleteMapping(path = "/projects/{projectId}/tasks/{taskId}/worklogs/{worklogId}/delete")
+    public ResponseEntity<ResponseDto> deleteWorklog(@PathVariable String projectId, @PathVariable String taskId, @PathVariable String worklogId, @RequestHeader(value = "Authorization", required = false) String refreshToken) {
+        if (refreshToken == null || refreshToken.isEmpty()) {
+            ResponseDto responseDto = new ResponseDto(null, null, "Authorization key is null or empty", ResponseCode.AUTHORIZATION_TOKEN_NULL);
+            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+        }
+        try {
+            WorkLogResponseDto addedTask = manageEngineAPIService.deleteWorklog(refreshToken, projectId, taskId, worklogId);
+            ResponseDto responseDto = new ResponseDto(null, addedTask, null, ResponseCode.WORKLOG_DELETE_SUCCESS);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
+        } catch (RefreshTokenHasExpired e) {
+            ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.REFRESH_TOKEN_HAS_EXPIRED);
+            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+        } catch (Exception e) {
+            ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.WORKLOG_DELETE_FAILED);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
+        }
+    }
+
+
     @GetMapping(path = "/projects/{projectId}/tasks/{taskId}/worklogs")
     public ResponseEntity<ResponseDto> getWorkloads(@PathVariable String projectId, @PathVariable String taskId, @RequestHeader(value = "Authorization", required = false) String refreshToken) {
         if (refreshToken == null || refreshToken.isEmpty()) {
@@ -323,6 +343,7 @@ public class ManageEnginAPIController {
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
         }
     }
+
 
 
 }
