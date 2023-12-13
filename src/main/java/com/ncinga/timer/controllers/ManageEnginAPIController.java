@@ -5,12 +5,16 @@ import com.ncinga.timer.dtos.responseDto.*;
 import com.ncinga.timer.exceptions.RefreshTokenHasExpired;
 import com.ncinga.timer.service.ManageEngineAPIService;
 import com.ncinga.timer.utilities.ResponseCode;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(value = "api/engine")
@@ -173,10 +177,17 @@ public class ManageEnginAPIController {
     }
 
     @PostMapping(path = "/projects/{projectId}/add-task")
-    public ResponseEntity<ResponseDto> addTask(@PathVariable String projectId, @RequestBody AddEditTaskDto newTask, @RequestHeader(value = "Authorization", required = false) String refreshToken) {
+    public ResponseEntity<ResponseDto> addTask(@PathVariable String projectId, @Valid @RequestBody AddEditTaskDto newTask, BindingResult result, @RequestHeader(value = "Authorization", required = false) String refreshToken) {
         if (refreshToken == null || refreshToken.isEmpty()) {
             ResponseDto responseDto = new ResponseDto(null, null, "Authorization key is null or empty", ResponseCode.AUTHORIZATION_TOKEN_NULL);
             return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+        }
+        if (result.hasErrors()) {
+            List<String> errors = result.getAllErrors().stream()
+                    .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                    .collect(Collectors.toList());
+            ResponseDto response = new ResponseDto(null, null, errors, ResponseCode.TASK_ADD_FAILED);
+            return new ResponseEntity<>(response, HttpStatus.OK);
         }
         try {
             ProjectTask addedTask = manageEngineAPIService.addTask(refreshToken, projectId, newTask);
@@ -281,7 +292,7 @@ public class ManageEnginAPIController {
             ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.REFRESH_TOKEN_HAS_EXPIRED);
             return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
         } catch (Exception e) {
-            ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.WORKLOG_EDIT_SUCCESS);
+            ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.WORKLOG_EDIT_FAILED);
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
         }
     }

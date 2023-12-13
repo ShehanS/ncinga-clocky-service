@@ -1,5 +1,6 @@
 package com.ncinga.timer.dtos.requestDto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,6 +12,7 @@ public class ProjectTaskDto {
     private String id;
     private String email_before;
     private String description;
+    @NotBlank(message = "Cannot empty title")
     private String title;
     private ActualEndTime actual_end_time;
     private ActualStartTime actual_start_time;

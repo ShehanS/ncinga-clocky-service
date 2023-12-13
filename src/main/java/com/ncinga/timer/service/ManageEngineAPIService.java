@@ -6,6 +6,7 @@ import com.ncinga.timer.dtos.requestDto.*;
 import com.ncinga.timer.dtos.responseDto.*;
 import com.ncinga.timer.exceptions.RefreshTokenHasExpired;
 import com.ncinga.timer.interfacrs.IManageEngine;
+import com.ncinga.timer.utilities.Validator;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.time.*;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -409,6 +411,11 @@ public class ManageEngineAPIService implements IManageEngine {
 
     @Override
     public WorkLogResponseDto addWorkLog(String refreshToken, String projectId, String taskId, WorkLogRequestDto workLogRequestDto) throws RefreshTokenHasExpired, JsonProcessingException {
+        long currentEpoch = Instant.now().getEpochSecond() * 1000;
+        Long differenceInDays = Validator.calculateDifferenceInDays(currentEpoch, Long.parseLong(workLogRequestDto.getWorklog().start_time.getValue()));
+        if(differenceInDays >= 15){
+            throw new RuntimeException("Maximum input date range should be below 15 days");
+        }
         String apiUrl = API + "/projects/" + projectId + "/tasks/" + taskId + "/worklogs";
         ObjectMapper objectMapper = new ObjectMapper();
         String jsonString = objectMapper.writeValueAsString(workLogRequestDto);
@@ -446,6 +453,11 @@ public class ManageEngineAPIService implements IManageEngine {
 
     @Override
     public WorkLogResponseDto updateWorkLog(String refreshToken, String projectId, String taskId, String worklogId, WorkLogRequestDto workLogRequestDto) throws RefreshTokenHasExpired, JsonProcessingException {
+        long currentEpoch = Instant.now().getEpochSecond() * 1000;
+        Long differenceInDays = Validator.calculateDifferenceInDays(currentEpoch, Long.parseLong(workLogRequestDto.getWorklog().start_time.getValue()));
+        if(differenceInDays >= 15){
+            throw new RuntimeException("Maximum input date range should be below 15 days");
+        }
         String apiUrl = API + "/projects/" + projectId + "/tasks/" + taskId + "/worklogs/" + worklogId;
         ObjectMapper objectMapper = new ObjectMapper();
         String jsonString = objectMapper.writeValueAsString(workLogRequestDto);
@@ -556,12 +568,11 @@ public class ManageEngineAPIService implements IManageEngine {
 
     @Override
     public ProjectTask addTask(String refreshToken, String projectId, AddEditTaskDto task) throws RefreshTokenHasExpired, JsonProcessingException {
-        long currentEpoch = Instant.now().getEpochSecond();
-        Difference differenceInDays = calculateDifferenceInDays(currentEpoch, Long.parseLong(task.getTask().getActual_start_time().getValue()));
-        if(differenceInDays.getDays() >= 15){
-            throw new RuntimeException("Maximum input date range should below 15 days");
+        long currentEpoch = Instant.now().getEpochSecond() * 1000;
+        Long differenceInDays = Validator.calculateDifferenceInDays(currentEpoch, Long.parseLong(task.getTask().getActual_start_time().getValue()));
+        if(differenceInDays >= 15){
+            throw new RuntimeException("Maximum input date range should be below 15 days");
         }
-
         String apiUrl = API + "/projects/" + projectId + "/tasks";
         ObjectMapper objectMapper = new ObjectMapper();
         String jsonString = objectMapper.writeValueAsString(task);
@@ -599,6 +610,11 @@ public class ManageEngineAPIService implements IManageEngine {
 
     @Override
     public ProjectTask updateTask(String refreshToken, String projectId, String taskId, AddEditTaskDto task) throws RefreshTokenHasExpired, JsonProcessingException {
+        long currentEpoch = Instant.now().getEpochSecond() * 1000;
+        Long differenceInDays = Validator.calculateDifferenceInDays(currentEpoch, Long.parseLong(task.getTask().getActual_start_time().getValue()));
+        if(differenceInDays >= 15){
+            throw new RuntimeException("Maximum input date range should be below 15 days");
+        }
         String apiUrl = API + "/projects/" + projectId + "/tasks/" + taskId;
         ObjectMapper objectMapper = new ObjectMapper();
         String jsonString = objectMapper.writeValueAsString(task);
@@ -751,39 +767,4 @@ public class ManageEngineAPIService implements IManageEngine {
         }
     }
 
-    private Difference calculateDifferenceInDays(long currentEpoch, long givenEpoch) {
-        Instant currentInstant = Instant.ofEpochSecond(currentEpoch);
-        Instant givenInstant = Instant.ofEpochSecond(givenEpoch);
-        LocalDateTime currentDateTime = LocalDateTime.ofInstant(currentInstant, ZoneOffset.UTC);
-        LocalDateTime givenDateTime = LocalDateTime.ofInstant(givenInstant, ZoneOffset.UTC);
-        Duration duration = Duration.between(givenDateTime, currentDateTime);
-        long months = duration.toDays() / 30;
-        long days = duration.toDays() % 30;
-        long hours = duration.toHours() % 24;
-
-        return new Difference(months, days, hours);
-    }
-    static class Difference {
-        private final long months;
-        private final long days;
-        private final long hours;
-
-        public Difference(long months, long days, long hours) {
-            this.months = months;
-            this.days = days;
-            this.hours = hours;
-        }
-
-        public long getMonths() {
-            return months;
-        }
-
-        public long getDays() {
-            return days;
-        }
-
-        public long getHours() {
-            return hours;
-        }
-    }
 }
