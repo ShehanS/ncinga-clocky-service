@@ -1,7 +1,9 @@
 package com.ncinga.timer.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ncinga.timer.dtos.requestDto.*;
 import com.ncinga.timer.dtos.responseDto.*;
 import com.ncinga.timer.exceptions.RefreshTokenHasExpired;
@@ -16,9 +18,8 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
-import java.time.*;
-import java.time.temporal.ChronoUnit;
-import java.util.Date;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,6 +35,8 @@ public class ManageEngineAPIService implements IManageEngine {
 
     public List<ProjectDto> getProjectList(String refreshToken, String email) throws RefreshTokenHasExpired {
         String apiUrl = API + "/tasks";
+        String apiUrlForProject = API + "/projects";
+        List<ProjectDto> filteredProjects = new ArrayList<>();
         URI uri = UriComponentsBuilder.fromUriString(apiUrl)
                 .queryParam("input_data", "{\n" +
                         "  \"list_info\": {\n" +
@@ -45,6 +48,16 @@ public class ManageEngineAPIService implements IManageEngine {
                         "        \"value\": \"" + email + "\"\n" +
                         "      }\n" +
                         "    ]\n" +
+                        "  }\n" +
+                        "}")
+                .build()
+                .encode()
+                .toUri();
+
+        URI projectsUri = UriComponentsBuilder.fromUriString(apiUrlForProject)
+                .queryParam("input_data", "{\n" +
+                        "  \"list_info\": {\n" +
+                        "    \"row_count\": 100\n" +
                         "  }\n" +
                         "}")
                 .build()
@@ -65,11 +78,61 @@ public class ManageEngineAPIService implements IManageEngine {
                     requestEntity,
                     TaskListResponseDto.class
             );
+
+
             HttpStatus statusCode = (HttpStatus) responseEntity.getStatusCode();
             TaskListResponseDto taskListResponseDto = responseEntity.getBody();
-
             List<ProjectDto> projectDtoList = taskListResponseDto.getTasks().stream().map(task -> task.getProject()).distinct().collect(Collectors.toList());
-            return projectDtoList;
+
+            try {
+                ResponseEntity<Object> responseEntityProjects = restTemplate.exchange(
+                        projectsUri,
+                        HttpMethod.GET,
+                        requestEntity,
+                        Object.class
+                );
+
+                Object projectsResponse = responseEntityProjects.getBody();
+                ObjectMapper objectMapper = new ObjectMapper();
+                try {
+                    String jsonString = objectMapper.writeValueAsString(projectsResponse);
+                    JsonNode jsonNode = objectMapper.readTree(jsonString);
+                    JsonNode projects = (jsonNode.get("projects"));
+
+                    if (projects.isArray()) {
+                        for (JsonNode project : projects) {
+                            String projectId = project.get("id").asText();
+                            String status = project.get("status").get("name").asText();
+                            for (TaskDto task : taskListResponseDto.getTasks()) {
+                                if (task.getProject().getId().equals(projectId) && !status.equals("Closed")) {
+                                    String projectTitle = task.getProject().getTitle();
+                                    if (!filteredProjects.stream().anyMatch(p -> p.getTitle().equals(projectTitle))) {
+                                        filteredProjects.add(task.getProject());
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+                HttpStatus projectStatusCode = (HttpStatus) responseEntity.getStatusCode();
+
+
+
+            } catch (HttpClientErrorException | HttpServerErrorException e) {
+                HttpStatus projectStatusCode = (HttpStatus) e.getStatusCode();
+                if (statusCode == HttpStatus.UNAUTHORIZED) {
+                    throw new RefreshTokenHasExpired("Your refresh token has expired, Please refresh page");
+                } else {
+                    throw e;
+                }
+            }
+
+
+            return filteredProjects;
 
         } catch (HttpClientErrorException | HttpServerErrorException e) {
             HttpStatus statusCode = (HttpStatus) e.getStatusCode();
@@ -164,7 +227,7 @@ public class ManageEngineAPIService implements IManageEngine {
                         "        \"field\": \"owner.email_id\",\n" +
                         "        \"condition\": \"is\",\n" +
                         "        \"value\": \"" + email + "\"\n" +
-                        "      }\n" +
+                        "      }\n, \n" +
                         "    ]\n" +
                         "  }\n" +
                         "}")
@@ -187,6 +250,7 @@ public class ManageEngineAPIService implements IManageEngine {
                     TaskListResponseDto.class
             );
             HttpStatus statusCode = (HttpStatus) responseEntity.getStatusCode();
+
             return responseEntity.getBody().getTasks();
         } catch (HttpClientErrorException | HttpServerErrorException e) {
             HttpStatus statusCode = (HttpStatus) e.getStatusCode();
@@ -233,7 +297,8 @@ public class ManageEngineAPIService implements IManageEngine {
                     TaskListResponseDto.class
             );
             HttpStatus statusCode = (HttpStatus) responseEntity.getStatusCode();
-            return responseEntity.getBody().getTasks();
+            List<TaskDto> filteredList = responseEntity.getBody().getTasks().stream().filter(t -> !t.getStatus().getName().equals("Closed")).collect(Collectors.toList());
+            return filteredList;
         } catch (HttpClientErrorException | HttpServerErrorException e) {
             HttpStatus statusCode = (HttpStatus) e.getStatusCode();
             if (statusCode == HttpStatus.UNAUTHORIZED) {
@@ -612,12 +677,23 @@ public class ManageEngineAPIService implements IManageEngine {
     public ProjectTask updateTask(String refreshToken, String projectId, String taskId, AddEditTaskDto task) throws RefreshTokenHasExpired, JsonProcessingException {
         long currentEpoch = Instant.now().getEpochSecond() * 1000;
         Long differenceInDays = Validator.calculateDifferenceInDays(currentEpoch, Long.parseLong(task.getTask().getActual_start_time().getValue()));
-        if(differenceInDays >= 15){
+        String jsonString = "";
+        if (differenceInDays >= 15) {
             throw new RuntimeException("Maximum input date range should be below 15 days");
         }
         String apiUrl = API + "/projects/" + projectId + "/tasks/" + taskId;
         ObjectMapper objectMapper = new ObjectMapper();
-        String jsonString = objectMapper.writeValueAsString(task);
+        if (task.getTask().getStatus().getName().equals("Closed")) {
+            //{"task":{"status":{"id":"143153000000006661"}}}
+            ObjectNode rootNode = objectMapper.createObjectNode();
+            ObjectNode taskNode = rootNode.putObject("task");
+            ObjectNode statusNode = taskNode.putObject("status");
+            statusNode.put("id", task.getTask().getStatus().getId());
+            jsonString = objectMapper.writeValueAsString(rootNode);
+        } else {
+            jsonString = objectMapper.writeValueAsString(task);
+        }
+
         URI uri = UriComponentsBuilder.fromUriString(apiUrl)
                 .queryParam("input_data", jsonString)
                 .build()
