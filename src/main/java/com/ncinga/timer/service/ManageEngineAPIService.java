@@ -4,6 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.ncinga.timer.dtos.queryDto.ListInfo;
+import com.ncinga.timer.dtos.queryDto.QueryRequest;
+import com.ncinga.timer.dtos.queryDto.SearchCriteria;
 import com.ncinga.timer.dtos.requestDto.*;
 import com.ncinga.timer.dtos.responseDto.*;
 import com.ncinga.timer.exceptions.RefreshTokenHasExpired;
@@ -33,117 +36,89 @@ public class ManageEngineAPIService implements IManageEngine {
         this.restTemplate = restTemplate;
     }
 
-    public List<ProjectDto> getProjectList(String refreshToken, String email) throws RefreshTokenHasExpired {
-        String apiUrl = API + "/tasks";
-        String apiUrlForProject = API + "/projects";
-        List<ProjectDto> filteredProjects = new ArrayList<>();
-        URI uri = UriComponentsBuilder.fromUriString(apiUrl)
-                .queryParam("input_data", "{\n" +
-                        "  \"list_info\": {\n" +
-                        "    \"row_count\": 5000,\n" +
-                        "    \"search_criteria\": [\n" +
-                        "      {\n" +
-                        "        \"field\": \"owner.email_id\",\n" +
-                        "        \"condition\": \"is\",\n" +
-                        "        \"value\": \"" + email + "\"\n" +
-                        "      }\n" +
-                        "    ]\n" +
-                        "  }\n" +
-                        "}")
-                .build()
-                .encode()
-                .toUri();
+    public List<ProjectDto> getProjectList(String refreshToken, String email) throws RefreshTokenHasExpired, JsonProcessingException {
+        String taskApiUrl = API + "/tasks";
+        String projectApiUrl = API + "/projects";
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<ProjectDto> filterProjects = new ArrayList<>();
+        List<JsonNode> taskList = new ArrayList<>();
+        List<JsonNode> projectList = new ArrayList<>();
+        boolean hasMoreTask = true;
+        int taskIndex = 1;
+        boolean hasMoreProject = true;
+        int projectIndex = 1;
 
-        URI projectsUri = UriComponentsBuilder.fromUriString(apiUrlForProject)
-                .queryParam("input_data", "{\n" +
-                        "  \"list_info\": {\n" +
-                        "    \"row_count\": 100\n" +
-                        "  }\n" +
-                        "}")
-                .build()
-                .encode()
-                .toUri();
+        while (hasMoreTask) {
+            SearchCriteria taskOwner = new SearchCriteria();
+            taskOwner.setField("owner.email_id");
+            taskOwner.setCondition("is");
+            taskOwner.setValue(email);
+            SearchCriteria taskStatus = new SearchCriteria();
+            taskStatus.setField("status.name");
+            taskStatus.setCondition("is not");
+            taskStatus.setLogical_operator("and");
+            taskStatus.setValue("Closed");
+            List<SearchCriteria> criteria = new ArrayList<>();
+            criteria.add(taskOwner);
+            criteria.add(taskStatus);
+            ListInfo listInfo = new ListInfo();
+            listInfo.setSearch_criteria(criteria);
+            listInfo.setStart_index(taskIndex);
+            listInfo.setRow_count(100);
+            QueryRequest queryRequest = new QueryRequest(listInfo);
+            Object taskResponse = QueryService.executeHTTPRequest(refreshToken, queryRequest, taskApiUrl);
+            String tasksString = objectMapper.writeValueAsString(taskResponse);
+            JsonNode tasksResponseNode = objectMapper.readTree(tasksString);
+            hasMoreTask = tasksResponseNode.get("list_info").get("has_more_rows").asBoolean();
+            taskIndex++;
+            JsonNode tasks = tasksResponseNode.get("tasks");
+            for (JsonNode task : tasks) {
+                taskList.add(task);
+            }
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", refreshToken);
-        headers.set("Content-Type", "application/x-www-form-urlencoded");
-        headers.set("Accept", "application/vnd.manageengine.sdp.v3+json");
+        }
+        while (hasMoreProject) {
+            SearchCriteria projectStatus = new SearchCriteria();
+            projectStatus.setField("status.name");
+            projectStatus.setCondition("is not");
+            projectStatus.setValue("Closed");
+            List<SearchCriteria> criteria = new ArrayList<>();
+            criteria.add(projectStatus);
+            ListInfo listInfo = new ListInfo();
+            listInfo.setStart_index(projectIndex);
+            listInfo.setSearch_criteria(criteria);
+            listInfo.setRow_count(100);
+            QueryRequest queryRequest = new QueryRequest(listInfo);
+            Object projectsResponse = QueryService.executeHTTPRequest(refreshToken, queryRequest, projectApiUrl);
+            String projectsString = objectMapper.writeValueAsString(projectsResponse);
+            JsonNode projectResponseNode = objectMapper.readTree(projectsString);
+            hasMoreProject = projectResponseNode.get("list_info").get("has_more_rows").asBoolean();
+            projectIndex++;
+            JsonNode projects = projectResponseNode.get("projects");
+            for (JsonNode project : projects) {
+                projectList.add(project);
+            }
 
-        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
 
-        try {
-            ResponseEntity<TaskListResponseDto> responseEntity = restTemplate.exchange(
-                    uri,
-                    HttpMethod.GET,
-                    requestEntity,
-                    TaskListResponseDto.class
-            );
-
-
-            HttpStatus statusCode = (HttpStatus) responseEntity.getStatusCode();
-            TaskListResponseDto taskListResponseDto = responseEntity.getBody();
-            List<ProjectDto> projectDtoList = taskListResponseDto.getTasks().stream().map(task -> task.getProject()).distinct().collect(Collectors.toList());
-
-            try {
-                ResponseEntity<Object> responseEntityProjects = restTemplate.exchange(
-                        projectsUri,
-                        HttpMethod.GET,
-                        requestEntity,
-                        Object.class
-                );
-
-                Object projectsResponse = responseEntityProjects.getBody();
-                ObjectMapper objectMapper = new ObjectMapper();
-                try {
-                    String jsonString = objectMapper.writeValueAsString(projectsResponse);
-                    JsonNode jsonNode = objectMapper.readTree(jsonString);
-                    JsonNode projects = (jsonNode.get("projects"));
-
-                    if (projects.isArray()) {
-                        for (JsonNode project : projects) {
-                            String projectId = project.get("id").asText();
-                            String status = project.get("status").get("name").asText();
-                            for (TaskDto task : taskListResponseDto.getTasks()) {
-                                if (task.getProject().getId().equals(projectId) && !status.equals("Closed")) {
-                                    String projectTitle = task.getProject().getTitle();
-                                    if (!filteredProjects.stream().anyMatch(p -> p.getTitle().equals(projectTitle))) {
-                                        filteredProjects.add(task.getProject());
-                                    }
-                                }
-                            }
-                        }
+        }
+        for (JsonNode project : projectList) {
+            String projectId = project.get("id").asText();
+            for (JsonNode task : taskList) {
+                String taskProjectId = task.get("project").get("id").asText();
+                if (projectId.equals(taskProjectId)) {
+                    ProjectDto projectDto = objectMapper.convertValue(project, ProjectDto.class);
+                    if (filterProjects.stream().anyMatch(p -> p.getTitle().equals(projectDto.getTitle()))) {
+                    } else {
+                        filterProjects.add(projectDto);
                     }
-
-
-                } catch (JsonProcessingException e) {
-                    throw new RuntimeException(e);
-                }
-                HttpStatus projectStatusCode = (HttpStatus) responseEntity.getStatusCode();
-
-
-
-            } catch (HttpClientErrorException | HttpServerErrorException e) {
-                HttpStatus projectStatusCode = (HttpStatus) e.getStatusCode();
-                if (statusCode == HttpStatus.UNAUTHORIZED) {
-                    throw new RefreshTokenHasExpired("Your refresh token has expired, Please refresh page");
-                } else {
-                    throw e;
                 }
             }
 
-
-            return filteredProjects;
-
-        } catch (HttpClientErrorException | HttpServerErrorException e) {
-            HttpStatus statusCode = (HttpStatus) e.getStatusCode();
-            if (statusCode == HttpStatus.UNAUTHORIZED) {
-                throw new RefreshTokenHasExpired("Your refresh token has expired, Please refresh page");
-            } else {
-                throw e;
-            }
         }
 
+        return filterProjects;
     }
+
 
     @Override
     public ProjectTemplateDto getProjectById(String refreshToken, String projectId) throws RefreshTokenHasExpired {

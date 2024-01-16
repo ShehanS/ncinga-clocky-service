@@ -1,5 +1,6 @@
 package com.ncinga.timer.dtos.requestDto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,6 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ProjectDto {
     private TemplateDto template;
     private int percentage_completion;
