@@ -19,7 +19,7 @@ public interface IManageEngine {
 
     List<TaskDto> getTaskByEmail(String refreshToken, String email) throws RefreshTokenHasExpired;
 
-    List<TaskDto> getTaskByProjectId(String refreshToken, String projectId) throws RefreshTokenHasExpired;
+    List<TaskDto> getTaskByProjectId(String refreshToken, String projectId, String email) throws RefreshTokenHasExpired, JsonProcessingException;
 
     List<OwnerDto> getOwners(String refreshToken, String projectId) throws RefreshTokenHasExpired;
 

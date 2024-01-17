@@ -24,7 +24,6 @@ import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class ManageEngineAPIService implements IManageEngine {
@@ -238,50 +237,53 @@ public class ManageEngineAPIService implements IManageEngine {
     }
 
     @Override
-    public List<TaskDto> getTaskByProjectId(String refreshToken, String projectId) throws RefreshTokenHasExpired {
-        String apiUrl = API + "/tasks";
-        URI uri = UriComponentsBuilder.fromUriString(apiUrl)
-                .queryParam("input_data", "{\n" +
-                        "  \"list_info\": {\n" +
-                        "    \"row_count\": 5000,\n" +
-                        "    \"search_criteria\": [\n" +
-                        "      {\n" +
-                        "        \"field\": \"project.id\",\n" +
-                        "        \"condition\": \"is\",\n" +
-                        "        \"value\": \"" + projectId + "\"\n" +
-                        "      }\n" +
-                        "    ]\n" +
-                        "  }\n" +
-                        "}")
-                .build()
-                .encode()
-                .toUri();
+    public List<TaskDto> getTaskByProjectId(String refreshToken, String projectId, String email) throws RefreshTokenHasExpired, JsonProcessingException {
+        String taskApiUrl = API + "/projects/" + projectId + "/tasks";
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<TaskDto> filterTask = new ArrayList<>();
+        List<JsonNode> taskList = new ArrayList<>();
+        boolean hasMoreTask = true;
+        int taskIndex = 1;
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", refreshToken);
-        headers.set("Content-Type", "application/x-www-form-urlencoded");
-        headers.set("Accept", "application/vnd.manageengine.sdp.v3+json");
-
-        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
-
-        try {
-            ResponseEntity<TaskListResponseDto> responseEntity = restTemplate.exchange(
-                    uri,
-                    HttpMethod.GET,
-                    requestEntity,
-                    TaskListResponseDto.class
-            );
-            HttpStatus statusCode = (HttpStatus) responseEntity.getStatusCode();
-            List<TaskDto> filteredList = responseEntity.getBody().getTasks().stream().filter(t -> !t.getStatus().getName().equals("Closed")).collect(Collectors.toList());
-            return filteredList;
-        } catch (HttpClientErrorException | HttpServerErrorException e) {
-            HttpStatus statusCode = (HttpStatus) e.getStatusCode();
-            if (statusCode == HttpStatus.UNAUTHORIZED) {
-                throw new RefreshTokenHasExpired("Your refresh token has expired, Please refresh page");
-            } else {
-                throw e;
+        while (hasMoreTask) {
+            SearchCriteria taskOwner = new SearchCriteria();
+            taskOwner.setField("owner.email_id");
+            taskOwner.setCondition("is");
+            taskOwner.setValue(email);
+            SearchCriteria taskStatus = new SearchCriteria();
+            taskStatus.setField("status.name");
+            taskStatus.setCondition("is not");
+            taskStatus.setLogical_operator("and");
+            taskStatus.setValue("Closed");
+            List<SearchCriteria> criteria = new ArrayList<>();
+            criteria.add(taskOwner);
+            criteria.add(taskStatus);
+            ListInfo listInfo = new ListInfo();
+            listInfo.setSearch_criteria(criteria);
+            listInfo.setStart_index(taskIndex);
+            listInfo.setRow_count(100);
+            QueryRequest queryRequest = new QueryRequest(listInfo);
+            Object taskResponse = QueryService.executeHTTPRequest(refreshToken, queryRequest, taskApiUrl);
+            String tasksString = objectMapper.writeValueAsString(taskResponse);
+            JsonNode tasksResponseNode = objectMapper.readTree(tasksString);
+            hasMoreTask = tasksResponseNode.get("list_info").get("has_more_rows").asBoolean();
+            taskIndex++;
+            JsonNode tasks = tasksResponseNode.get("tasks");
+            for (JsonNode task : tasks) {
+                taskList.add(task);
             }
         }
+        if (taskList.size() > 0) {
+            for (JsonNode task : taskList) {
+                TaskDto taskDto = objectMapper.convertValue(task, TaskDto.class);
+                if (!taskDto.getTitle().equals("Time-Sheet-Task")) {
+                    filterTask.add(taskDto);
+                }
+
+            }
+        }
+
+        return filterTask;
     }
 
     @Override

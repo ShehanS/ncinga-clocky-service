@@ -27,7 +27,7 @@ public class ManageEnginAPIController {
     public ResponseEntity<ResponseDto> getProjects(@RequestBody GeneralRequestDto generalRequestDto, @RequestHeader(value = "Authorization", required = false) String refreshToken) {
         if (refreshToken == null || refreshToken.isEmpty()) {
             ResponseDto responseDto = new ResponseDto(null, null, "Authorization key is null or empty", ResponseCode.AUTHORIZATION_TOKEN_NULL);
-            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
         }
 
         try {
@@ -36,7 +36,7 @@ public class ManageEnginAPIController {
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
         } catch (RefreshTokenHasExpired e) {
             ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.REFRESH_TOKEN_HAS_EXPIRED);
-            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
         } catch (Exception e) {
             ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.GET_PROJECT_ERROR);
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
@@ -47,7 +47,7 @@ public class ManageEnginAPIController {
     public ResponseEntity<ResponseDto> getProjectsOwners(@RequestBody OwnerListRequestDto ownerListRequestDto, @RequestHeader(value = "Authorization", required = false) String refreshToken) {
         if (refreshToken == null || refreshToken.isEmpty()) {
             ResponseDto responseDto = new ResponseDto(null, null, "Authorization key is null or empty", ResponseCode.AUTHORIZATION_TOKEN_NULL);
-            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
         }
         try {
             OwnerResponseDto owners = manageEngineAPIService.getProjectOwners(refreshToken, ownerListRequestDto);
@@ -55,7 +55,7 @@ public class ManageEnginAPIController {
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
         } catch (RefreshTokenHasExpired e) {
             ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.REFRESH_TOKEN_HAS_EXPIRED);
-            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
         } catch (Exception e) {
             ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.GET_PROJECT_OWNER_FAILED);
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
@@ -66,7 +66,7 @@ public class ManageEnginAPIController {
     public ResponseEntity<ResponseDto> getTaskByEmail(@RequestBody GeneralRequestDto generalRequestDto, @RequestHeader(value = "Authorization", required = false) String refreshToken) {
         if (refreshToken == null || refreshToken.isEmpty()) {
             ResponseDto responseDto = new ResponseDto(null, null, "Authorization key is null or empty", ResponseCode.AUTHORIZATION_TOKEN_NULL);
-            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
         }
         try {
             List<TaskDto> taskList = manageEngineAPIService.getTaskByEmail(refreshToken, generalRequestDto.getEmail());
@@ -74,7 +74,7 @@ public class ManageEnginAPIController {
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
         } catch (RefreshTokenHasExpired e) {
             ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.REFRESH_TOKEN_HAS_EXPIRED);
-            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
         } catch (Exception e) {
             ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.GET_TASK_LIST_FAILED);
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
@@ -85,15 +85,15 @@ public class ManageEnginAPIController {
     public ResponseEntity<ResponseDto> getTaskByProjectId(@RequestBody GeneralRequestDto generalRequestDto, @RequestHeader(value = "Authorization", required = false) String refreshToken) {
         if (refreshToken == null || refreshToken.isEmpty()) {
             ResponseDto responseDto = new ResponseDto(null, null, "Authorization key is null or empty", ResponseCode.AUTHORIZATION_TOKEN_NULL);
-            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
         }
         try {
-            List<TaskDto> taskList = manageEngineAPIService.getTaskByProjectId(refreshToken, generalRequestDto.getProjectId());
+            List<TaskDto> taskList = manageEngineAPIService.getTaskByProjectId(refreshToken, generalRequestDto.getProjectId(), generalRequestDto.getEmail());
             ResponseDto responseDto = new ResponseDto(null, taskList, null, ResponseCode.GET_TASK_LIST_SUCCESS);
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
         } catch (RefreshTokenHasExpired e) {
             ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.REFRESH_TOKEN_HAS_EXPIRED);
-            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
         } catch (Exception e) {
             ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.GET_TASK_LIST_FAILED);
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
@@ -104,7 +104,7 @@ public class ManageEnginAPIController {
     public ResponseEntity<ResponseDto> getProjectById(@RequestBody GeneralRequestDto generalRequestDto, @RequestHeader(value = "Authorization", required = false) String refreshToken) {
         if (refreshToken == null || refreshToken.isEmpty()) {
             ResponseDto responseDto = new ResponseDto(null, null, "Authorization key is null or empty", ResponseCode.AUTHORIZATION_TOKEN_NULL);
-            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
         }
         try {
             ProjectTemplateDto projectDto = manageEngineAPIService.getProjectById(refreshToken, generalRequestDto.getProjectId());
@@ -112,7 +112,7 @@ public class ManageEnginAPIController {
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
         } catch (RefreshTokenHasExpired e) {
             ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.REFRESH_TOKEN_HAS_EXPIRED);
-            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
         } catch (Exception e) {
             ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.GET_PROJECT_ERROR);
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
@@ -123,7 +123,7 @@ public class ManageEnginAPIController {
     public ResponseEntity<ResponseDto> getOwnerByProjectId(@RequestBody GeneralRequestDto generalRequestDto, @RequestHeader(value = "Authorization", required = false) String refreshToken) {
         if (refreshToken == null || refreshToken.isEmpty()) {
             ResponseDto responseDto = new ResponseDto(null, null, "Authorization key is null or empty", ResponseCode.AUTHORIZATION_TOKEN_NULL);
-            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
         }
         try {
             List<OwnerDto> owners = manageEngineAPIService.getOwners(refreshToken, generalRequestDto.getProjectId());
@@ -131,7 +131,7 @@ public class ManageEnginAPIController {
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
         } catch (RefreshTokenHasExpired e) {
             ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.REFRESH_TOKEN_HAS_EXPIRED);
-            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
         } catch (Exception e) {
             ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.GET_PROJECT_OWNER_FAILED);
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
@@ -142,7 +142,7 @@ public class ManageEnginAPIController {
     public ResponseEntity<ResponseDto> getPriorityByProjectId(@RequestBody GeneralRequestDto generalRequestDto, @RequestHeader(value = "Authorization", required = false) String refreshToken) {
         if (refreshToken == null || refreshToken.isEmpty()) {
             ResponseDto responseDto = new ResponseDto(null, null, "Authorization key is null or empty", ResponseCode.AUTHORIZATION_TOKEN_NULL);
-            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
         }
         try {
             List<PriorityDto> priorityList = manageEngineAPIService.getProjectPriority(refreshToken, generalRequestDto.getProjectId());
@@ -150,7 +150,7 @@ public class ManageEnginAPIController {
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
         } catch (RefreshTokenHasExpired e) {
             ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.REFRESH_TOKEN_HAS_EXPIRED);
-            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
         } catch (Exception e) {
             ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.GET_PRIORITY_FAILED);
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
@@ -161,7 +161,7 @@ public class ManageEnginAPIController {
     public ResponseEntity<ResponseDto> getStatusByProjectId(@RequestBody GeneralRequestDto generalRequestDto, @RequestHeader(value = "Authorization", required = false) String refreshToken) {
         if (refreshToken == null || refreshToken.isEmpty()) {
             ResponseDto responseDto = new ResponseDto(null, null, "Authorization key is null or empty", ResponseCode.AUTHORIZATION_TOKEN_NULL);
-            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
         }
         try {
             List<StatusDto> priorityList = manageEngineAPIService.getProjectStatus(refreshToken, generalRequestDto.getProjectId());
@@ -169,7 +169,7 @@ public class ManageEnginAPIController {
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
         } catch (RefreshTokenHasExpired e) {
             ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.REFRESH_TOKEN_HAS_EXPIRED);
-            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
         } catch (Exception e) {
             ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.GET_STATUS_FAILED);
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
@@ -180,7 +180,7 @@ public class ManageEnginAPIController {
     public ResponseEntity<ResponseDto> addTask(@PathVariable String projectId, @Valid @RequestBody AddEditTaskDto newTask, BindingResult result, @RequestHeader(value = "Authorization", required = false) String refreshToken) {
         if (refreshToken == null || refreshToken.isEmpty()) {
             ResponseDto responseDto = new ResponseDto(null, null, "Authorization key is null or empty", ResponseCode.AUTHORIZATION_TOKEN_NULL);
-            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
         }
         if (result.hasErrors()) {
             List<String> errors = result.getAllErrors().stream()
@@ -195,7 +195,7 @@ public class ManageEnginAPIController {
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
         } catch (RefreshTokenHasExpired e) {
             ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.REFRESH_TOKEN_HAS_EXPIRED);
-            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
         } catch (Exception e) {
             ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.TASK_ADD_FAILED);
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
@@ -206,7 +206,7 @@ public class ManageEnginAPIController {
     public ResponseEntity<ResponseDto> updateTask(@PathVariable String projectId, @PathVariable String taskId, @RequestBody AddEditTaskDto updateTask, @RequestHeader(value = "Authorization", required = false) String refreshToken) {
         if (refreshToken == null || refreshToken.isEmpty()) {
             ResponseDto responseDto = new ResponseDto(null, null, "Authorization key is null or empty", ResponseCode.AUTHORIZATION_TOKEN_NULL);
-            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
         }
         try {
             ProjectTask addedTask = manageEngineAPIService.updateTask(refreshToken, projectId, taskId, updateTask);
@@ -214,7 +214,7 @@ public class ManageEnginAPIController {
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
         } catch (RefreshTokenHasExpired e) {
             ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.REFRESH_TOKEN_HAS_EXPIRED);
-            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
         } catch (Exception e) {
             ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.TASK_UPDATE_FAILED);
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
@@ -225,7 +225,7 @@ public class ManageEnginAPIController {
     public ResponseEntity<ResponseDto> getTaskById(@PathVariable String projectId, @PathVariable String taskId, @RequestHeader(value = "Authorization", required = false) String refreshToken) {
         if (refreshToken == null || refreshToken.isEmpty()) {
             ResponseDto responseDto = new ResponseDto(null, null, "Authorization key is null or empty", ResponseCode.AUTHORIZATION_TOKEN_NULL);
-            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
         }
         try {
             ProjectTask addedTask = manageEngineAPIService.getTask(refreshToken, projectId, taskId);
@@ -233,7 +233,7 @@ public class ManageEnginAPIController {
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
         } catch (RefreshTokenHasExpired e) {
             ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.REFRESH_TOKEN_HAS_EXPIRED);
-            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
         } catch (Exception e) {
             ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.GET_TASK_FAILED);
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
@@ -244,7 +244,7 @@ public class ManageEnginAPIController {
     public ResponseEntity<ResponseDto> deleteTaskById(@PathVariable String projectId, @PathVariable String taskId, @RequestHeader(value = "Authorization", required = false) String refreshToken) {
         if (refreshToken == null || refreshToken.isEmpty()) {
             ResponseDto responseDto = new ResponseDto(null, null, "Authorization key is null or empty", ResponseCode.AUTHORIZATION_TOKEN_NULL);
-            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
         }
         try {
             DeleteTaskDto deleteTask = manageEngineAPIService.deleteTask(refreshToken, projectId, taskId);
@@ -252,7 +252,7 @@ public class ManageEnginAPIController {
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
         } catch (RefreshTokenHasExpired e) {
             ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.REFRESH_TOKEN_HAS_EXPIRED);
-            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
         } catch (Exception e) {
             ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.DELETE_TASK_FAILED);
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
@@ -263,7 +263,7 @@ public class ManageEnginAPIController {
     public ResponseEntity<ResponseDto> addWorklog(@PathVariable String projectId, @PathVariable String taskId, @RequestBody WorkLogRequestDto workLogRequestDto, @RequestHeader(value = "Authorization", required = false) String refreshToken) {
         if (refreshToken == null || refreshToken.isEmpty()) {
             ResponseDto responseDto = new ResponseDto(null, null, "Authorization key is null or empty", ResponseCode.AUTHORIZATION_TOKEN_NULL);
-            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
         }
         try {
             WorkLogResponseDto addedTask = manageEngineAPIService.addWorkLog(refreshToken, projectId, taskId, workLogRequestDto);
@@ -271,7 +271,7 @@ public class ManageEnginAPIController {
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
         } catch (RefreshTokenHasExpired e) {
             ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.REFRESH_TOKEN_HAS_EXPIRED);
-            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
         } catch (Exception e) {
             ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.WORKLOG_ADD_FAILED);
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
@@ -282,7 +282,7 @@ public class ManageEnginAPIController {
     public ResponseEntity<ResponseDto> editWorklog(@PathVariable String projectId, @PathVariable String taskId, @PathVariable String worklogId, @RequestBody WorkLogRequestDto workLogRequestDto, @RequestHeader(value = "Authorization", required = false) String refreshToken) {
         if (refreshToken == null || refreshToken.isEmpty()) {
             ResponseDto responseDto = new ResponseDto(null, null, "Authorization key is null or empty", ResponseCode.AUTHORIZATION_TOKEN_NULL);
-            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
         }
         try {
             WorkLogResponseDto addedTask = manageEngineAPIService.updateWorkLog(refreshToken, projectId, taskId, worklogId, workLogRequestDto);
@@ -290,7 +290,7 @@ public class ManageEnginAPIController {
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
         } catch (RefreshTokenHasExpired e) {
             ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.REFRESH_TOKEN_HAS_EXPIRED);
-            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
         } catch (Exception e) {
             ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.WORKLOG_EDIT_FAILED);
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
@@ -301,7 +301,7 @@ public class ManageEnginAPIController {
     public ResponseEntity<ResponseDto> deleteWorklog(@PathVariable String projectId, @PathVariable String taskId, @PathVariable String worklogId, @RequestHeader(value = "Authorization", required = false) String refreshToken) {
         if (refreshToken == null || refreshToken.isEmpty()) {
             ResponseDto responseDto = new ResponseDto(null, null, "Authorization key is null or empty", ResponseCode.AUTHORIZATION_TOKEN_NULL);
-            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
         }
         try {
             WorkLogResponseDto addedTask = manageEngineAPIService.deleteWorklog(refreshToken, projectId, taskId, worklogId);
@@ -309,7 +309,7 @@ public class ManageEnginAPIController {
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
         } catch (RefreshTokenHasExpired e) {
             ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.REFRESH_TOKEN_HAS_EXPIRED);
-            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
         } catch (Exception e) {
             ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.WORKLOG_DELETE_FAILED);
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
@@ -321,7 +321,7 @@ public class ManageEnginAPIController {
     public ResponseEntity<ResponseDto> getWorkloads(@PathVariable String projectId, @PathVariable String taskId, @RequestHeader(value = "Authorization", required = false) String refreshToken) {
         if (refreshToken == null || refreshToken.isEmpty()) {
             ResponseDto responseDto = new ResponseDto(null, null, "Authorization key is null or empty", ResponseCode.AUTHORIZATION_TOKEN_NULL);
-            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
         }
         try {
             WorkLogResponseDto workLogDtoList = manageEngineAPIService.getWorkLogs(refreshToken, projectId, taskId);
@@ -329,7 +329,7 @@ public class ManageEnginAPIController {
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
         } catch (RefreshTokenHasExpired e) {
             ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.REFRESH_TOKEN_HAS_EXPIRED);
-            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
         } catch (Exception e) {
             ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.GET_ALL_WORKLOG_FAILED);
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
@@ -340,7 +340,7 @@ public class ManageEnginAPIController {
     public ResponseEntity<ResponseDto> getWorklogTypes(@PathVariable String projectId, @PathVariable String taskId, @RequestHeader(value = "Authorization", required = false) String refreshToken) {
         if (refreshToken == null || refreshToken.isEmpty()) {
             ResponseDto responseDto = new ResponseDto(null, null, "Authorization key is null or empty", ResponseCode.AUTHORIZATION_TOKEN_NULL);
-            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
         }
         try {
             WorkLogTypeResponseDto workLogDtoList = manageEngineAPIService.getTypes(refreshToken, projectId, taskId);
@@ -348,7 +348,7 @@ public class ManageEnginAPIController {
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
         } catch (RefreshTokenHasExpired e) {
             ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.REFRESH_TOKEN_HAS_EXPIRED);
-            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
         } catch (Exception e) {
             ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.GET_ALL_TYPE_SUCCESS);
             return new ResponseEntity<>(responseDto, HttpStatus.OK);

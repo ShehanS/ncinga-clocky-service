@@ -1,5 +1,6 @@
 package com.ncinga.timer.dtos.responseDto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.ncinga.timer.dtos.requestDto.DepartmentDto;
 import com.ncinga.timer.dtos.requestDto.SiteDto;
 import lombok.AllArgsConstructor;
@@ -9,6 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class CreatedDateDto {
     private String email_id;
     private boolean is_technician;
