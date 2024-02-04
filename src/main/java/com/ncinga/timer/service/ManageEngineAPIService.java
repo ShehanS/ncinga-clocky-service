@@ -35,6 +35,45 @@ public class ManageEngineAPIService implements IManageEngine {
         this.restTemplate = restTemplate;
     }
 
+
+    public List<TaskDto> getTasks(String refreshToken, String email) throws RefreshTokenHasExpired, JsonProcessingException {
+        String taskApiUrl = API + "/tasks";
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<TaskDto> tasks = new ArrayList<>();
+        boolean hasMoreTasks = true;
+        int taskIndex = 1;
+
+        while (hasMoreTasks) {
+            SearchCriteria taskOwner = new SearchCriteria();
+            taskOwner.setField("owner.email_id");
+            taskOwner.setCondition("is");
+            taskOwner.setValue(email);
+            List<SearchCriteria> criteria = new ArrayList<>();
+            criteria.add(taskOwner);
+
+            ListInfo listInfo = new ListInfo();
+            listInfo.setSearch_criteria(criteria);
+            listInfo.setStart_index(taskIndex);
+            listInfo.setRow_count(100);
+
+            QueryRequest queryRequest = new QueryRequest(listInfo);
+            Object taskResponse = QueryService.executeHTTPRequest(refreshToken, queryRequest, taskApiUrl);
+            String tasksString = objectMapper.writeValueAsString(taskResponse);
+            JsonNode tasksResponseNode = objectMapper.readTree(tasksString);
+
+            hasMoreTasks = tasksResponseNode.get("list_info").get("has_more_rows").asBoolean();
+            taskIndex++;
+
+            JsonNode taskList = tasksResponseNode.get("tasks");
+            for (JsonNode taskNode : taskList) {
+                TaskDto taskDto = objectMapper.convertValue(taskNode, TaskDto.class);
+                tasks.add(taskDto);
+            }
+        }
+
+        return tasks;
+    }
+
     public List<ProjectDto> getProjectList(String refreshToken, String email) throws RefreshTokenHasExpired, JsonProcessingException {
         String taskApiUrl = API + "/tasks";
         String projectApiUrl = API + "/projects";

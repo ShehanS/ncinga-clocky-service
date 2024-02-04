@@ -23,6 +23,16 @@ public class ManageEnginAPIController {
     @Autowired
     private ManageEngineAPIService manageEngineAPIService;
 
+    @GetMapping(path = "/tasks")
+    public ResponseEntity<List<TaskDto>> getTasks(@RequestParam String projectId, @RequestParam String email) {
+        try {
+            List<TaskDto> tasks = manageEngineAPIService.getTasks(projectId, email);
+            return new ResponseEntity<>(tasks, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     @PostMapping(path = "/get-projects")
     public ResponseEntity<ResponseDto> getProjects(@RequestBody GeneralRequestDto generalRequestDto, @RequestHeader(value = "Authorization", required = false) String refreshToken) {
         if (refreshToken == null || refreshToken.isEmpty()) {
