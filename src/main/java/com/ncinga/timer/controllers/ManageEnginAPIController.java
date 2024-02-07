@@ -23,17 +23,39 @@ public class ManageEnginAPIController {
     @Autowired
     private ManageEngineAPIService manageEngineAPIService;
 
-    @GetMapping(path = "/tasks")
-    public ResponseEntity<List<TaskDto>> getTasks(@RequestParam String projectId, @RequestParam String email) {
+    @PostMapping(path = "/get-tasks")
+    public ResponseEntity<List<TaskDto>> getTasks(@RequestBody GeneralRequestDto generalRequestDto, @RequestHeader(value = "Authorization", required = false) String refreshToken) {
         try {
-            List<TaskDto> tasks = manageEngineAPIService.getTasks(projectId, email);
-            return new ResponseEntity<>(tasks, HttpStatus.OK);
+            List<TaskDto> tasks = manageEngineAPIService.getTasks(refreshToken, generalRequestDto.getEmail());
+
+            if (tasks != null) {
+                return new ResponseEntity<>(tasks, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    @PostMapping(path = "/tasks")
+    @PostMapping(path = "/get-task-by-id")
+    public ResponseEntity<TaskDto> getTaskById(@RequestHeader(value = "Authorization", required = false) String refreshToken,@RequestParam("taskId") Long taskId) {
+        try {
+            TaskDto task = manageEngineAPIService.getTaskById(refreshToken, taskId);
+
+            if (task != null) {
+                return new ResponseEntity<>(task, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+
+    @PostMapping(path = "/create-task")
     public ResponseEntity<TaskDto> createTask(@RequestHeader(value = "Authorization", required = false) String refreshToken, @RequestBody TaskDto newTask) {
         try {
 
@@ -53,10 +75,10 @@ public class ManageEnginAPIController {
         }
     }
 
-    @PutMapping(path = "/tasks/{taskId}")
-    public ResponseEntity<TaskDto> editTask(@PathVariable String taskId, @RequestBody TaskDto updatedTask) {
+    @PutMapping(path = "/update-task/{taskId}")
+    public ResponseEntity<TaskDto> updateTask(@PathVariable String taskId, @RequestBody TaskDto updatedTask) {
         try {
-            TaskDto editedTask = manageEngineAPIService.editTask(taskId, updatedTask);
+            TaskDto editedTask = manageEngineAPIService.updateTask(taskId, updatedTask);
 
             if (editedTask != null) {
                 return new ResponseEntity<>(editedTask, HttpStatus.OK);
@@ -72,7 +94,7 @@ public class ManageEnginAPIController {
         }
     }
 
-    @DeleteMapping(path = "/tasks/{taskId}")
+    @DeleteMapping(path = "/delete-task/{taskId}")
     public ResponseEntity<TaskDto> deleteTask(@RequestHeader(value = "Authorization", required = false) String refreshToken,@PathVariable String taskId) {
         try {
             TaskDto isDeleted = manageEngineAPIService.deleteTask(refreshToken,taskId);
