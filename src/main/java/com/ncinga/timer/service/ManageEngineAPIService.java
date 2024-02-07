@@ -62,6 +62,7 @@ public class ManageEngineAPIService implements IManageEngine {
             listInfo.setRow_count(100);
 
             QueryRequest queryRequest = new QueryRequest(listInfo);
+
             Object taskResponse = QueryService.executeHTTPRequest(refreshToken, queryRequest, taskApiUrl);
 
             ObjectMapper objectMapper = new ObjectMapper();
@@ -84,7 +85,32 @@ public class ManageEngineAPIService implements IManageEngine {
         return tasks;
     }
 
+    public TaskDto getTaskById(String refreshToken, Long taskId) throws RefreshTokenHasExpired {
+        String taskApiUrl = API + "/tasks/" + taskId;
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", refreshToken);
+        headers.set("Content-Type", "application/json");
+        headers.set("Accept", "application/json");
 
+        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<TaskDto> responseEntity = restTemplate.exchange(
+                    taskApiUrl,
+                    HttpMethod.GET,
+                    requestEntity,
+                    TaskDto.class
+            );
+            return responseEntity.getBody();
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            HttpStatusCode statusCode = e.getStatusCode();
+            if (statusCode == HttpStatus.UNAUTHORIZED) {
+                throw new RefreshTokenHasExpired("Your refresh token has expired, Please refresh page");
+            } else {
+                throw e;
+            }
+        }
+    }
 
 
     public TaskDto createTask(String refreshToken, TaskDto newTask) throws JsonProcessingException, RefreshTokenHasExpired {
@@ -125,7 +151,7 @@ public class ManageEngineAPIService implements IManageEngine {
 
     }
 
-    public TaskDto editTask(String refreshToken, TaskDto updatedTask) throws JsonProcessingException {
+    public TaskDto updateTask(String refreshToken, TaskDto updatedTask) throws JsonProcessingException {
         String editTaskApiUrl = API + "/tasks/" + updatedTask.getId();
         ObjectMapper objectMapper = new ObjectMapper();
         String jsonString = objectMapper.writeValueAsString(updatedTask);
