@@ -13,7 +13,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -23,18 +25,24 @@ public class ManageEnginAPIController {
     @Autowired
     private ManageEngineAPIService manageEngineAPIService;
 
-    @PostMapping(path = "/get-tasks")
-    public ResponseEntity<List<TaskDto>> getTasks(@RequestBody GeneralRequestDto generalRequestDto, @RequestHeader(value = "Authorization", required = false) String refreshToken) {
-        try {
-            List<TaskDto> tasks = manageEngineAPIService.getTasks(refreshToken, generalRequestDto.getEmail());
+    @GetMapping(path = "/tasks")
+    public ResponseEntity<List<TaskDto>> getTasks(
+            @RequestParam(required = false) Map<String, String> owner,
+            @RequestHeader(value = "Authorization", required = false) String refreshToken) {
 
-            if (tasks != null) {
-                return new ResponseEntity<>(tasks, HttpStatus.OK);
+        try {
+            List<TaskDto> tasks = new ArrayList<>();
+
+            if (owner != null && owner.containsKey("email_id")) {
+                String ownerEmail = owner.get("email_id");
+                tasks = manageEngineAPIService.getTaskList(refreshToken, ownerEmail);
             } else {
-                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
+
+            return new ResponseEntity<>(tasks, HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new RuntimeException(e);
         }
     }
 
@@ -53,27 +61,6 @@ public class ManageEnginAPIController {
         }
     }
 
-
-
-    @PostMapping(path = "/create-task")
-    public ResponseEntity<TaskDto> createTask(@RequestHeader(value = "Authorization", required = false) String refreshToken, @RequestBody TaskDto newTask) {
-        try {
-
-            TaskDto createdTask = manageEngineAPIService.createTask(refreshToken, newTask);
-
-            if (createdTask != null) {
-                return new ResponseEntity<>(createdTask, HttpStatus.CREATED);
-            }
-
-            else {
-                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-        }
-
-        catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
 
     @PutMapping(path = "/update-task/{taskId}")
     public ResponseEntity<TaskDto> updateTask(@PathVariable String taskId, @RequestBody TaskDto updatedTask) {
