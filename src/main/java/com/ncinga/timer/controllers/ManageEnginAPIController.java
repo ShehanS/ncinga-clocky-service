@@ -38,7 +38,7 @@ public class ManageEnginAPIController {
         }
     }
 
-    @PostMapping(path = "/get-task-by-id")
+    @PostMapping(path = "/get-task-by-id/{task_id}")
     public ResponseEntity<TaskDto> getTaskById(@RequestHeader(value = "Authorization", required = false) String refreshToken,@RequestParam("taskId") Long taskId) {
         try {
             TaskDto task = manageEngineAPIService.getTaskById(refreshToken, taskId);
