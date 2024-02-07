@@ -13,7 +13,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -23,15 +25,31 @@ public class ManageEnginAPIController {
     @Autowired
     private ManageEngineAPIService manageEngineAPIService;
 
+
     @GetMapping(path = "/tasks")
-    public ResponseEntity<List<TaskDto>> getTasks(@RequestParam String projectId, @RequestParam String email) {
+    public ResponseEntity<List<TaskDto>> getTasks(
+            @RequestParam(required = false) Map<String, String> owner,
+            @RequestHeader(value = "Authorization", required = false) String refreshToken) {
+
         try {
-            List<TaskDto> tasks = manageEngineAPIService.getTasks(projectId, email);
+            List<TaskDto> tasks = new ArrayList<>();
+
+            if (owner != null && owner.containsKey("email_id")) {
+                String ownerEmail = owner.get("email_id");
+                tasks = manageEngineAPIService.getTaskList(refreshToken, ownerEmail);
+            } else {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+
             return new ResponseEntity<>(tasks, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+
+
+
 
     @PostMapping(path = "/tasks")
     public ResponseEntity<TaskDto> createTask(@RequestHeader(value = "Authorization", required = false) String refreshToken, @RequestBody TaskDto newTask) {

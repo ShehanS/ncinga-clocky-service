@@ -24,6 +24,7 @@ import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ManageEngineAPIService implements IManageEngine {
@@ -36,43 +37,55 @@ public class ManageEngineAPIService implements IManageEngine {
     }
 
 
-    public List<TaskDto> getTasks(String refreshToken, String email) throws RefreshTokenHasExpired, JsonProcessingException {
-        String taskApiUrl = API + "/tasks";
-        ObjectMapper objectMapper = new ObjectMapper();
+    public List<TaskDto> getTaskList(String refreshToken, String ownerEmail) {
         List<TaskDto> tasks = new ArrayList<>();
-        boolean hasMoreTasks = true;
-        int taskIndex = 1;
 
-        while (hasMoreTasks) {
+        try {
+            String taskApiUrl = API + "/tasks";
             SearchCriteria taskOwner = new SearchCriteria();
             taskOwner.setField("owner.email_id");
             taskOwner.setCondition("is");
-            taskOwner.setValue(email);
+            taskOwner.setValue(ownerEmail);
+
+            SearchCriteria taskStatus = new SearchCriteria();
+            taskStatus.setField("status.name");
+            taskStatus.setCondition("is not");
+            taskStatus.setLogical_operator("and");
+            taskStatus.setValue("Closed");
+
             List<SearchCriteria> criteria = new ArrayList<>();
             criteria.add(taskOwner);
+            criteria.add(taskStatus);
 
             ListInfo listInfo = new ListInfo();
             listInfo.setSearch_criteria(criteria);
-            listInfo.setStart_index(taskIndex);
             listInfo.setRow_count(100);
 
             QueryRequest queryRequest = new QueryRequest(listInfo);
             Object taskResponse = QueryService.executeHTTPRequest(refreshToken, queryRequest, taskApiUrl);
+
+            ObjectMapper objectMapper = new ObjectMapper();
             String tasksString = objectMapper.writeValueAsString(taskResponse);
             JsonNode tasksResponseNode = objectMapper.readTree(tasksString);
 
-            hasMoreTasks = tasksResponseNode.get("list_info").get("has_more_rows").asBoolean();
-            taskIndex++;
-
-            JsonNode taskList = tasksResponseNode.get("tasks");
-            for (JsonNode taskNode : taskList) {
-                TaskDto taskDto = objectMapper.convertValue(taskNode, TaskDto.class);
-                tasks.add(taskDto);
+            JsonNode tasksNode = tasksResponseNode.get("tasks");
+            if (tasksNode != null && tasksNode.isArray()) {
+                for (JsonNode taskNode : tasksNode) {
+                    TaskDto taskDto = objectMapper.convertValue(taskNode, TaskDto.class);
+                    tasks.add(taskDto);
+                }
             }
+
+        } catch (HttpClientErrorException ex) {
+        } catch (JsonProcessingException | RefreshTokenHasExpired e) {
+            e.printStackTrace();
         }
 
         return tasks;
     }
+
+
+
 
     public TaskDto createTask(String refreshToken, TaskDto newTask) throws JsonProcessingException, RefreshTokenHasExpired {
         String createTaskApiUrl = API + "/tasks";
