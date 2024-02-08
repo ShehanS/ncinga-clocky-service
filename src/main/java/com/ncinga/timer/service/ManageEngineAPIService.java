@@ -58,18 +58,17 @@ public class ManageEngineAPIService implements IManageEngine {
             SearchCriteria taskStatus = new SearchCriteria();
             taskStatus.setField("status.name");
             taskStatus.setCondition("is not");
-            taskStatus.setLogicalOperator("and");
             taskStatus.setValue("Closed");
 
             List<SearchCriteria> criteria = new ArrayList<>();
             criteria.add(taskOwner);
             criteria.add(taskStatus);
 
-            TaskDTO.ListInfo listInfo = new TaskDTO.ListInfo();
-            listInfo.setSearchCriteria(criteria);
-            listInfo.setRowCount(100);
+            ListInfo listInfo = new ListInfo();
+            listInfo.setSearch_criteria(criteria);
+            listInfo.setRow_count(100);
 
-            QueryRequest queryRequest = new QueryRequest(listInfo);
+            com.ncinga.timer.dtos.queryDto.QueryRequest queryRequest =  new com.ncinga.timer.dtos.queryDto.QueryRequest(listInfo);
 
             Object taskResponse = QueryService.executeHTTPRequest(refreshToken, queryRequest, taskUrl);
             logger.info("Task response: {}", taskResponse);
@@ -82,7 +81,7 @@ public class ManageEngineAPIService implements IManageEngine {
             if (tasksNode != null && tasksNode.isArray()) {
                 for (JsonNode taskNode : tasksNode) {
                     TaskDTO.Task taskDto = objectMapper.convertValue(taskNode, TaskDTO.Task.class);
-                    taskDto.setAssociatedEntity("task");
+                    taskDto.setAssociated_entity("task");
                     tasks.add(taskDto);
                 }
             }
@@ -98,12 +97,102 @@ public class ManageEngineAPIService implements IManageEngine {
         return tasks;
     }
 
+    public Object getTaskById(String refreshToken, String taskId) throws RefreshTokenHasExpired {
+        String taskUrl = API + "/tasks/" + taskId;
+        URI uri = UriComponentsBuilder.fromUriString(taskUrl)
+                .build()
+                .toUri();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", refreshToken);
+        headers.set("Content-Type", "application/x-www-form-urlencoded");
+        headers.set("Accept", "application/vnd.manageengine.sdp.v3+json");
+
+        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<Object> responseEntity = restTemplate.exchange(
+                    uri,
+                    HttpMethod.GET,
+                    requestEntity,
+                    Object.class
+            );
+            HttpStatus statusCode = (HttpStatus) responseEntity.getStatusCode();
+            return responseEntity.getBody();
 
 
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            HttpStatus statusCode = (HttpStatus) e.getStatusCode();
+            if (statusCode == HttpStatus.UNAUTHORIZED) {
+                throw new RefreshTokenHasExpired("Your refresh token has expired, Please refresh page");
+            } else {
+                throw e;
+            }
+        }
+    }
+
+    public TaskDTO.Task createTask(String refreshToken, TaskDTO.Task newTask) throws JsonProcessingException, RefreshTokenHasExpired {
+        String createTaskApiUrl = API + "/tasks";
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jsonString = objectMapper.writeValueAsString(newTask);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", refreshToken);
+        headers.set("Content-Type", "application/json");
+        headers.set("Accept", "application/json");
+
+        HttpEntity<String> requestEntity = new HttpEntity<>(jsonString, headers);
+
+        try {
+            ResponseEntity<TaskDTO.Task> responseEntity = restTemplate.exchange(
+                    createTaskApiUrl,
+                    HttpMethod.GET,
+                    requestEntity,
+                    TaskDTO.Task.class
+            );
+            return responseEntity.getBody();
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            HttpStatusCode statusCode = e.getStatusCode();
+            if (statusCode == HttpStatus.UNAUTHORIZED) {
+                throw new RefreshTokenHasExpired("Your refresh token has expired, please refresh page");
+            } else {
+                throw e;
+            }
+        }
+    }
 
 
-    public TaskDto getTaskById(String refreshToken, Long taskId) throws RefreshTokenHasExpired {
-        String taskApiUrl = API + "/tasks/" + taskId;
+    public TaskDTO.Task updateTask(String refreshToken, String taskId, TaskDTO.Task updatedTask) throws RefreshTokenHasExpired, JsonProcessingException {
+        String updateTaskApiUrl = API + "/update-task/" + taskId;
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jsonString = objectMapper.writeValueAsString(updatedTask);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", refreshToken);
+        headers.set("Content-Type", "application/json");
+        headers.set("Accept", "application/json");
+
+        HttpEntity<String> requestEntity = new HttpEntity<>(jsonString, headers);
+
+        try {
+            ResponseEntity<TaskDTO.Task> responseEntity = restTemplate.exchange(
+                    updateTaskApiUrl,
+                    HttpMethod.PUT,
+                    requestEntity,
+                    TaskDTO.Task.class
+            );
+            return responseEntity.getBody();
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            HttpStatus statusCode = (HttpStatus) e.getStatusCode();
+            if (statusCode == HttpStatus.UNAUTHORIZED) {
+                throw new RefreshTokenHasExpired("Your refresh token has expired, please refresh page");
+            } else {
+                throw e;
+            }
+        }
+    }
+
+
+    public TaskDTO.Task deleteTask(String refreshToken, String taskId) throws JsonProcessingException, RefreshTokenHasExpired {
+        String deleteTaskApiUrl = API + "/tasks/" + taskId;
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", refreshToken);
         headers.set("Content-Type", "application/json");
@@ -112,11 +201,11 @@ public class ManageEngineAPIService implements IManageEngine {
         HttpEntity<String> requestEntity = new HttpEntity<>(headers);
 
         try {
-            ResponseEntity<TaskDto> responseEntity = restTemplate.exchange(
-                    taskApiUrl,
-                    HttpMethod.GET,
+            ResponseEntity<TaskDTO.Task> responseEntity = restTemplate.exchange(
+                    deleteTaskApiUrl,
+                    HttpMethod.DELETE,
                     requestEntity,
-                    TaskDto.class
+                    TaskDTO.Task.class
             );
             return responseEntity.getBody();
         } catch (HttpClientErrorException | HttpServerErrorException e) {
@@ -128,123 +217,6 @@ public class ManageEngineAPIService implements IManageEngine {
             }
         }
     }
-
-
-    public TaskDto createTask(String refreshToken, TaskDto newTask) throws JsonProcessingException, RefreshTokenHasExpired {
-        String createTaskApiUrl = API + "/tasks";
-        ObjectMapper objectMapper = new ObjectMapper();
-        String jsonString = objectMapper.writeValueAsString(newTask);
-        URI uri = UriComponentsBuilder.fromUriString(createTaskApiUrl)
-                .queryParam("input_data", jsonString)
-                .build()
-                .encode()
-                .toUri();
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", refreshToken);
-        headers.set("Content-Type", "application/x-www-form-urlencoded");
-        headers.set("Accept", "application/vnd.manageengine.sdp.v3+json");
-
-        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
-
-        try {
-            ResponseEntity<TaskDto> responseEntity = restTemplate.exchange(
-                    uri,
-                    HttpMethod.POST,
-                    requestEntity,
-                    TaskDto.class
-            );
-            HttpStatus statusCode = (HttpStatus) responseEntity.getStatusCode();
-            return responseEntity.getBody();
-        } catch (HttpClientErrorException | HttpServerErrorException e) {
-            HttpStatus statusCode = (HttpStatus) e.getStatusCode();
-            if (statusCode == HttpStatus.UNAUTHORIZED) {
-                throw new RefreshTokenHasExpired("Your refresh token has expired, Please refresh page");
-            } else {
-                throw e;
-            }
-        }
-
-
-    }
-
-    public TaskDto updateTask(String refreshToken, TaskDto updatedTask) throws JsonProcessingException {
-        String editTaskApiUrl = API + "/tasks/" + updatedTask.getId();
-        ObjectMapper objectMapper = new ObjectMapper();
-        String jsonString = objectMapper.writeValueAsString(updatedTask);
-        URI uri = UriComponentsBuilder.fromUriString(editTaskApiUrl)
-                .queryParam("input_data", jsonString)
-                .build()
-                .encode()
-                .toUri();
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", refreshToken);
-        headers.set("Content-Type", "application/x-www-form-urlencoded");
-        headers.set("Accept", "application/vnd.manageengine.sdp.v3+json");
-
-        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
-
-        try {
-            ResponseEntity<TaskDto> responseEntity = restTemplate.exchange(
-                    uri,
-                    HttpMethod.PUT,
-                    requestEntity,
-                    TaskDto.class
-            );
-            HttpStatus statusCode = (HttpStatus) responseEntity.getStatusCode();
-            return responseEntity.getBody();
-        } catch (HttpClientErrorException | HttpServerErrorException e) {
-            HttpStatus statusCode = (HttpStatus) e.getStatusCode();
-            if (statusCode == HttpStatus.UNAUTHORIZED) {
-                try {
-                    throw new RefreshTokenHasExpired("Your refresh token has expired, Please refresh page");
-                } catch (RefreshTokenHasExpired ex) {
-                    throw new RuntimeException(ex);
-                }
-            } else {
-                throw e;
-            }
-        }
-    }
-
-    public TaskDto deleteTask(String refreshToken, String taskId) throws JsonProcessingException {
-        String deleteTaskApiUrl = API + "/tasks/" + taskId;
-        URI uri = UriComponentsBuilder.fromUriString(deleteTaskApiUrl)
-                .build()
-                .encode()
-                .toUri();
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", refreshToken);
-        headers.set("Content-Type", "application/x-www-form-urlencoded");
-        headers.set("Accept", "application/vnd.manageengine.sdp.v3+json");
-
-        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
-
-        try {
-            ResponseEntity<TaskDto> responseEntity = restTemplate.exchange(
-                    uri,
-                    HttpMethod.DELETE,
-                    requestEntity,
-                    TaskDto.class
-            );
-            HttpStatus statusCode = (HttpStatus) responseEntity.getStatusCode();
-            return responseEntity.getBody();
-        } catch (HttpClientErrorException | HttpServerErrorException e) {
-            HttpStatus statusCode = (HttpStatus) e.getStatusCode();
-            if (statusCode == HttpStatus.UNAUTHORIZED) {
-                try {
-                    throw new RefreshTokenHasExpired("Your refresh token has expired, Please refresh page");
-                } catch (RefreshTokenHasExpired ex) {
-                    throw new RuntimeException(ex);
-                }
-            } else {
-                throw e;
-            }
-        }
-    }
-
 
     public List<ProjectDto> getProjectList(String refreshToken, String email) throws RefreshTokenHasExpired, JsonProcessingException {
         String taskApiUrl = API + "/tasks";

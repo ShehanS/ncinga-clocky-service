@@ -48,10 +48,80 @@ public class ManageEnginAPIController {
         }
     }
 
+    @GetMapping(path = "/get-task/{taskId}")
+    public ResponseEntity<ResponseDto> getTaskById(
+            @PathVariable String taskId,
+            @RequestHeader(value = "Authorization", required = false) String refreshToken
+    ) {
+        if (refreshToken == null || refreshToken.isEmpty()) {
+            ResponseDto responseDto = new ResponseDto(null, null, "Authorization key is null or empty", ResponseCode.AUTHORIZATION_TOKEN_NULL);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
+        }
+
+        try {
+            Object task = manageEngineAPIService.getTaskById(refreshToken, taskId);
+
+            if (task == null) {
+                ResponseDto responseDto = new ResponseDto(null, null, "Task with ID " + taskId + " not found", ResponseCode.GET_TASK_FAILED);
+                return new ResponseEntity<>(responseDto, HttpStatus.OK);
+            }
+
+            ResponseDto responseDto = new ResponseDto(null, task, null, ResponseCode.GET_TASK_SUCCESS);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
+        } catch (Exception e) {
+            ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.GET_TASK_FAILED);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
+        }
+    }
+
+    @PostMapping(path = "/create-task")
+    public ResponseEntity<TaskDTO.Task> createTask(@RequestHeader(value = "Authorization", required = false) String refreshToken, @RequestBody TaskDTO.Task newTask) {
+        try {
+            TaskDTO.Task createdTask = manageEngineAPIService.createTask(refreshToken, newTask);
+
+            if (createdTask != null) {
+                return new ResponseEntity<>(createdTask, HttpStatus.CREATED);
+            } else {
+                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } catch (RefreshTokenHasExpired e) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
 
+    @PutMapping(path = "/update-task/{taskId}")
+    public ResponseEntity<TaskDTO.Task> updateTask(@RequestHeader(value = "Authorization", required = false) String refreshToken,@PathVariable String taskId, @RequestBody TaskDTO.Task updatedTask) {
+        try {
+            TaskDTO.Task editedTask = manageEngineAPIService.updateTask(refreshToken,taskId, updatedTask);
+
+            if (editedTask != null) {
+                return new ResponseEntity<>(editedTask, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
 
+    @DeleteMapping(path = "/delete-task/{taskId}")
+    public ResponseEntity<TaskDTO.Task> deleteTask(@RequestHeader(value = "Authorization", required = false) String refreshToken, @PathVariable String taskId) {
+        try {
+            TaskDTO.Task isDeleted = manageEngineAPIService.deleteTask(refreshToken, taskId);
+
+            if (isDeleted != null) {
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
     @PostMapping(path = "/get-projects")
     public ResponseEntity<ResponseDto> getProjects(@RequestBody GeneralRequestDto generalRequestDto, @RequestHeader(value = "Authorization", required = false) String refreshToken) {

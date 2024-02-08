@@ -45,31 +45,32 @@ public class TaskDTO {
 
     @Data
     public static class Task {
+        private int percentage_completion;
         private String percentageCompletion;
-        private String estimatedEffortHours;
-        private String emailBefore;
+        private String estimated_effort_hours;
+        private String email_before;
         private String description;
         private String title;
-        private MarkedTechnician markedTechnician;
+        private MarkedTechnician marked_technician;
         private boolean overdue;
-        private String additionalCost;
-        private ActualEndTime actualEndTime;
+        private String additional_cost;
+        private ActualEndTime actual_end_time;
         private String id;
-        private ActualStartTime actualStartTime;
+        private ActualStartTime actual_start_time;
         private Owner owner;
         private String module;
         private Priority priority;
-        private CreatedBy createdBy;
-        private ScheduledEndTime scheduledEndTime;
-        private String estimatedEffortMinutes;
-        private String estimatedEffort;
-        private CreatedDate createdDate;
-        private String estimatedEffortDays;
-        private TaskType taskType;
-        private ScheduledStartTime scheduledStartTime;
+        private CreatedBy created_by;
+        private ScheduledEndTime scheduled_end_time;
+        private String estimated_effort_minutes;
+        private String estimated_effort;
+        private CreatedDate created_date;
+        private String estimated_effort_days;
+        private TaskType task_type;
+        private ScheduledStartTime scheduled_start_time;
         private Status status;
         private Project project;
-        private String associatedEntity;
+        private String associated_entity;
     }
 
     @Data
@@ -171,5 +172,6 @@ public class TaskDTO {
     @Data
     public static class Project {
         private String id;
+        private String display_id;
     }
 }
