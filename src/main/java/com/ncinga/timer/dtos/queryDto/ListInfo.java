@@ -13,4 +13,5 @@ public class ListInfo {
     private int row_count;
     private int start_index;
     private List<SearchCriteria> search_criteria;
+
 }

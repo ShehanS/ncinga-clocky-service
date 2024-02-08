@@ -1,5 +1,4 @@
 package com.ncinga.timer.controllers;
-
 import com.ncinga.timer.dtos.requestDto.*;
 import com.ncinga.timer.dtos.responseDto.*;
 import com.ncinga.timer.exceptions.RefreshTokenHasExpired;
@@ -12,11 +11,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-
+import com.ncinga.timer.dtos.requestDto.TaskDTO;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static com.ncinga.timer.dtos.requestDto.TaskDTO.logger;
+
 
 @RestController
 @RequestMapping(value = "api/engine")
@@ -25,81 +27,26 @@ public class ManageEnginAPIController {
     @Autowired
     private ManageEngineAPIService manageEngineAPIService;
 
-    @GetMapping(path = "/tasks")
-    public ResponseEntity<List<TaskDto>> getTasks(
-            @RequestParam(required = false) Map<String, String> owner,
-            @RequestHeader(value = "Authorization", required = false) String refreshToken) {
+    @PostMapping(path = "/tasks")
+    public ResponseEntity<ResponseDto> getTasks(@RequestBody GeneralRequestDto generalRequestDto, @RequestHeader(value = "Authorization", required = false) String refreshToken) {
+        if (refreshToken == null || refreshToken.isEmpty()) {
+            ResponseDto responseDto = new ResponseDto(null, null, "Authorization key is null or empty", ResponseCode.AUTHORIZATION_TOKEN_NULL);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
+        }
 
         try {
-            List<TaskDto> tasks = new ArrayList<>();
-
-            if (owner != null && owner.containsKey("email_id")) {
-                String ownerEmail = owner.get("email_id");
-                tasks = manageEngineAPIService.getTaskList(refreshToken, ownerEmail);
-            } else {
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-            }
-
-            return new ResponseEntity<>(tasks, HttpStatus.OK);
+            List<TaskDTO.Task> tasks = manageEngineAPIService.getTaskList(refreshToken, generalRequestDto.getEmail());
+            ResponseDto responseDto = new ResponseDto(null, tasks, null, ResponseCode.GET_TASK_SUCCESS);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.GET_TASK_FAILED);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
         }
     }
 
 
-    @PostMapping(path = "/get-task-by-id/{task_id}")
-    public ResponseEntity<TaskDto> getTaskById(@RequestHeader(value = "Authorization", required = false) String refreshToken,@RequestParam("taskId") Long taskId) {
-        try {
-            TaskDto task = manageEngineAPIService.getTaskById(refreshToken, taskId);
-
-            if (task != null) {
-                return new ResponseEntity<>(task, HttpStatus.OK);
-            } else {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            }
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
 
 
-    @PutMapping(path = "/update-task/{taskId}")
-    public ResponseEntity<TaskDto> updateTask(@PathVariable String taskId, @RequestBody TaskDto updatedTask) {
-        try {
-            TaskDto editedTask = manageEngineAPIService.updateTask(taskId, updatedTask);
-
-            if (editedTask != null) {
-                return new ResponseEntity<>(editedTask, HttpStatus.OK);
-            }
-
-            else {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            }
-        }
-
-        catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    @DeleteMapping(path = "/delete-task/{taskId}")
-    public ResponseEntity<TaskDto> deleteTask(@RequestHeader(value = "Authorization", required = false) String refreshToken,@PathVariable String taskId) {
-        try {
-            TaskDto isDeleted = manageEngineAPIService.deleteTask(refreshToken,taskId);
-
-            if (isDeleted != null) {
-                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-            }
-
-            else {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            }
-        }
-
-        catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
 
 
     @PostMapping(path = "/get-projects")

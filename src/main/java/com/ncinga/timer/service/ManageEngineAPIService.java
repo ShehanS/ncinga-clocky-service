@@ -19,12 +19,15 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import com.ncinga.timer.dtos.requestDto.TaskDTO;
 
 import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.ncinga.timer.dtos.requestDto.TaskDTO.logger;
 
 @Service
 public class ManageEngineAPIService implements IManageEngine {
@@ -36,12 +39,17 @@ public class ManageEngineAPIService implements IManageEngine {
         this.restTemplate = restTemplate;
     }
 
-
-    public List<TaskDto> getTaskList(String refreshToken, String ownerEmail) {
-        List<TaskDto> tasks = new ArrayList<>();
+    public List<TaskDTO.Task> getTaskList(String refreshToken, String ownerEmail) {
+        List<TaskDTO.Task> tasks = new ArrayList<>();
 
         try {
-            String taskApiUrl = API + "/tasks";
+            logger.info("Received request for tasks. Owner Email: {}", ownerEmail);
+
+            if (ownerEmail == null || ownerEmail.trim().isEmpty()) {
+                return tasks;
+            }
+
+            String taskUrl = API + "/tasks";
             SearchCriteria taskOwner = new SearchCriteria();
             taskOwner.setField("owner.email_id");
             taskOwner.setCondition("is");
@@ -50,20 +58,21 @@ public class ManageEngineAPIService implements IManageEngine {
             SearchCriteria taskStatus = new SearchCriteria();
             taskStatus.setField("status.name");
             taskStatus.setCondition("is not");
-            taskStatus.setLogical_operator("and");
+            taskStatus.setLogicalOperator("and");
             taskStatus.setValue("Closed");
 
             List<SearchCriteria> criteria = new ArrayList<>();
             criteria.add(taskOwner);
             criteria.add(taskStatus);
 
-            ListInfo listInfo = new ListInfo();
-            listInfo.setSearch_criteria(criteria);
-            listInfo.setRow_count(100);
+            TaskDTO.ListInfo listInfo = new TaskDTO.ListInfo();
+            listInfo.setSearchCriteria(criteria);
+            listInfo.setRowCount(100);
 
             QueryRequest queryRequest = new QueryRequest(listInfo);
 
-            Object taskResponse = QueryService.executeHTTPRequest(refreshToken, queryRequest, taskApiUrl);
+            Object taskResponse = QueryService.executeHTTPRequest(refreshToken, queryRequest, taskUrl);
+            logger.info("Task response: {}", taskResponse);
 
             ObjectMapper objectMapper = new ObjectMapper();
             String tasksString = objectMapper.writeValueAsString(taskResponse);
@@ -72,18 +81,26 @@ public class ManageEngineAPIService implements IManageEngine {
             JsonNode tasksNode = tasksResponseNode.get("tasks");
             if (tasksNode != null && tasksNode.isArray()) {
                 for (JsonNode taskNode : tasksNode) {
-                    TaskDto taskDto = objectMapper.convertValue(taskNode, TaskDto.class);
+                    TaskDTO.Task taskDto = objectMapper.convertValue(taskNode, TaskDTO.Task.class);
+                    taskDto.setAssociatedEntity("task");
                     tasks.add(taskDto);
                 }
             }
 
         } catch (HttpClientErrorException ex) {
+            logger.error("HTTP client error. Status code: {}, Response: {}", ex.getRawStatusCode(), ex.getResponseBodyAsString(), ex);
         } catch (JsonProcessingException | RefreshTokenHasExpired e) {
-            e.printStackTrace();
+            logger.error("JSON processing error or refresh token expired: ", e);
+        } catch (Exception e) {
+            logger.error("An unexpected error occurred: ", e);
         }
 
         return tasks;
     }
+
+
+
+
 
     public TaskDto getTaskById(String refreshToken, Long taskId) throws RefreshTokenHasExpired {
         String taskApiUrl = API + "/tasks/" + taskId;
