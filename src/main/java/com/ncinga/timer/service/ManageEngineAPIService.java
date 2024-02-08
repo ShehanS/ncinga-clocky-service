@@ -39,13 +39,13 @@ public class ManageEngineAPIService implements IManageEngine {
         this.restTemplate = restTemplate;
     }
 
-    public List<TaskDTO.Task> getTaskList(String refreshToken, String ownerEmail) {
+    public List<TaskDTO.Task> getTaskList(String refreshToken, String email) {
         List<TaskDTO.Task> tasks = new ArrayList<>();
 
         try {
-            logger.info("Received request for tasks. Owner Email: {}", ownerEmail);
+            logger.info("Received request for tasks. Owner Email: {}", email);
 
-            if (ownerEmail == null || ownerEmail.trim().isEmpty()) {
+            if (email == null || email.trim().isEmpty()) {
                 return tasks;
             }
 
@@ -53,7 +53,7 @@ public class ManageEngineAPIService implements IManageEngine {
             SearchCriteria taskOwner = new SearchCriteria();
             taskOwner.setField("owner.email_id");
             taskOwner.setCondition("is");
-            taskOwner.setValue(ownerEmail);
+            taskOwner.setValue(email);
 
             SearchCriteria taskStatus = new SearchCriteria();
             taskStatus.setField("status.name");

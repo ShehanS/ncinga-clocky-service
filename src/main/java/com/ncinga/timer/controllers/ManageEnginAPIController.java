@@ -28,14 +28,18 @@ public class ManageEnginAPIController {
     private ManageEngineAPIService manageEngineAPIService;
 
     @PostMapping(path = "/tasks")
-    public ResponseEntity<ResponseDto> getTasks(@RequestBody GeneralRequestDto generalRequestDto, @RequestHeader(value = "Authorization", required = false) String refreshToken) {
+    public ResponseEntity<ResponseDto> getTasks(
+            @RequestBody GeneralRequestDto generalRequestDto,
+            @RequestHeader(value = "Authorization", required = false) String refreshToken
+    ) {
         if (refreshToken == null || refreshToken.isEmpty()) {
             ResponseDto responseDto = new ResponseDto(null, null, "Authorization key is null or empty", ResponseCode.AUTHORIZATION_TOKEN_NULL);
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
         }
 
         try {
-            List<TaskDTO.Task> tasks = manageEngineAPIService.getTaskList(refreshToken, generalRequestDto.getEmail());
+            String email = generalRequestDto.getEmail(); // Assuming getEmail() method is present in GeneralRequestDto
+            List<TaskDTO.Task> tasks = manageEngineAPIService.getTaskList(refreshToken, email);
             ResponseDto responseDto = new ResponseDto(null, tasks, null, ResponseCode.GET_TASK_SUCCESS);
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
         } catch (Exception e) {
