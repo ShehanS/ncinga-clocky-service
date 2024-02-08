@@ -38,7 +38,7 @@ public class ManageEnginAPIController {
         }
 
         try {
-            String email = generalRequestDto.getEmail(); // Assuming getEmail() method is present in GeneralRequestDto
+            String email = generalRequestDto.getEmail();
             List<TaskDTO.Task> tasks = manageEngineAPIService.getTaskList(refreshToken, email);
             ResponseDto responseDto = new ResponseDto(null, tasks, null, ResponseCode.GET_TASK_SUCCESS);
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
