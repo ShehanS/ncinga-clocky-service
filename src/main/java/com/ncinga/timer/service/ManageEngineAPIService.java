@@ -40,7 +40,8 @@ public class ManageEngineAPIService implements IManageEngine {
         this.restTemplate = restTemplate;
     }
 
-
+    public List<TaskDTO.Task> getTaskList(String refreshToken, String email) {
+        List<TaskDTO.Task> tasks = new ArrayList<>();
         try {
             logger.info("Received request for tasks. Owner Email: {}", email);
 
