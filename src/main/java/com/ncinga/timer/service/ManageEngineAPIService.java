@@ -24,6 +24,7 @@ import com.ncinga.timer.dtos.requestDto.TaskDTO;
 import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -53,7 +54,7 @@ public class ManageEngineAPIService implements IManageEngine {
             SearchCriteria taskOwner = new SearchCriteria();
             taskOwner.setField("owner.email_id");
             taskOwner.setCondition("is");
-            taskOwner.setValue(email);
+            taskOwner.setValue(Collections.singletonList(email).toString());
 
             SearchCriteria taskStatus = new SearchCriteria();
             taskStatus.setField("status.name");
@@ -93,9 +94,10 @@ public class ManageEngineAPIService implements IManageEngine {
         } catch (Exception e) {
             logger.error("An unexpected error occurred: ", e);
         }
-
         return tasks;
     }
+
+
 
     public Object getTaskById(String refreshToken, String taskId) throws RefreshTokenHasExpired {
         String taskUrl = API + "/tasks/" + taskId;
