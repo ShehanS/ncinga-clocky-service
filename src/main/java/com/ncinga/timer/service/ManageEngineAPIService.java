@@ -40,57 +40,6 @@ public class ManageEngineAPIService implements IManageEngine {
         this.restTemplate = restTemplate;
     }
 
-    public List<TaskDTO.Task> getTaskList(String refreshToken, String email, int rowCount, String searchCriteriaField, String searchCriteriaValue, String searchCriteriaCondition) {
-        List<TaskDTO.Task> tasks = new ArrayList<>();
-
-        try {
-            logger.info("Received request for tasks. Owner Email: {}", email);
-
-            if (email == null || email.trim().isEmpty()) {
-                return tasks;
-            }
-
-            String taskUrl = API + "/tasks";
-
-            SearchCriteria taskOwner = new SearchCriteria();
-            taskOwner.setField(searchCriteriaField);
-            taskOwner.setCondition(searchCriteriaCondition);
-            taskOwner.setValue(searchCriteriaValue);
-
-            List<SearchCriteria> criteria = new ArrayList<>();
-            criteria.add(taskOwner);
-
-            ListInfo listInfo = new ListInfo();
-            listInfo.setSearch_criteria(criteria);
-            listInfo.setRow_count(rowCount);
-
-            com.ncinga.timer.dtos.queryDto.QueryRequest queryRequest = new com.ncinga.timer.dtos.queryDto.QueryRequest(listInfo);
-
-            Object taskResponse = QueryService.executeHTTPRequest(refreshToken, queryRequest, taskUrl);
-            logger.info("Task response: {}", taskResponse);
-
-            ObjectMapper objectMapper = new ObjectMapper();
-            String tasksString = objectMapper.writeValueAsString(taskResponse);
-            JsonNode tasksResponseNode = objectMapper.readTree(tasksString);
-
-            JsonNode tasksNode = tasksResponseNode.get("tasks");
-            if (tasksNode != null && tasksNode.isArray()) {
-                for (JsonNode taskNode : tasksNode) {
-                    TaskDTO.Task taskDto = objectMapper.convertValue(taskNode, TaskDTO.Task.class);
-                    taskDto.setAssociated_entity("task");
-                    tasks.add(taskDto);
-                }
-            }
-        } catch (HttpClientErrorException ex) {
-            logger.error("HTTP client error. Status code: {}, Response: {}", ex.getRawStatusCode(), ex.getResponseBodyAsString(), ex);
-        } catch (JsonProcessingException | RefreshTokenHasExpired e) {
-            logger.error("JSON processing error or refresh token expired: ", e);
-        } catch (Exception e) {
-            logger.error("An unexpected error occurred: ", e);
-        }
-        return tasks;
-    }
-
 
 
     public Object getTaskById(String refreshToken, String taskId) throws RefreshTokenHasExpired {

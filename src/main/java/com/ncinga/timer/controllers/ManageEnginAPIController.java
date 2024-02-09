@@ -7,7 +7,9 @@ import com.ncinga.timer.utilities.ResponseCode;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -26,32 +28,6 @@ public class ManageEnginAPIController {
 
     @Autowired
     private ManageEngineAPIService manageEngineAPIService;
-
-    @GetMapping(path = "/tasks")
-    public ResponseEntity<ResponseDto> getTasks(
-            @RequestParam(value = "email") String email,
-            @RequestParam Map<String, String> params,
-            @RequestHeader(value = "Authorization", required = false) String refreshToken
-    ) {
-        if (refreshToken == null || refreshToken.isEmpty()) {
-            ResponseDto responseDto = new ResponseDto(null, null, "Authorization key is null or empty", ResponseCode.AUTHORIZATION_TOKEN_NULL);
-            return new ResponseEntity<>(responseDto, HttpStatus.OK);
-        }
-
-        try {
-            int rowCount = Integer.parseInt(params.getOrDefault("row_count", "10"));
-            String searchCriteriaField = params.get("search_criteria_field");
-            String searchCriteriaValue = params.get("search_criteria_value");
-            String searchCriteriaCondition = params.get("search_criteria_condition");
-            List<TaskDTO.Task> tasks = manageEngineAPIService.getTaskList(refreshToken, email, rowCount, searchCriteriaField, searchCriteriaValue, searchCriteriaCondition);
-            ResponseDto responseDto = new ResponseDto(null, tasks, null, ResponseCode.GET_TASK_SUCCESS);
-
-            return new ResponseEntity<>(responseDto, HttpStatus.OK);
-        } catch (Exception e) {
-            ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.GET_TASK_FAILED);
-            return new ResponseEntity<>(responseDto, HttpStatus.OK);
-        }
-    }
 
 
 
