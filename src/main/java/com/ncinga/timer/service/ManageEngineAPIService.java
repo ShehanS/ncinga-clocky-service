@@ -55,6 +55,11 @@ public class ManageEngineAPIService implements IManageEngine {
             taskOwner.setCondition("is");
             taskOwner.setValue(email);
 
+            SearchCriteria taskModule = new SearchCriteria();
+            taskModule.setField("module");
+            taskModule.setCondition("is");
+            taskModule.setValue("General");
+
             SearchCriteria taskStatus = new SearchCriteria();
             taskStatus.setField("status.name");
             taskStatus.setCondition("is not");
@@ -62,6 +67,7 @@ public class ManageEngineAPIService implements IManageEngine {
 
             List<SearchCriteria> criteria = new ArrayList<>();
             criteria.add(taskOwner);
+            criteria.add(taskModule);
             criteria.add(taskStatus);
 
             ListInfo listInfo = new ListInfo();

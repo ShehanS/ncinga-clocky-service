@@ -45,7 +45,10 @@ public class TaskDTO {
 
     @Data
     public static class Task {
+        private String marked_group;
+        private int index;
         private int percentage_completion;
+        private String display_id;
         private String percentageCompletion;
         private String estimated_effort_hours;
         private String email_before;
@@ -71,12 +74,14 @@ public class TaskDTO {
         private Status status;
         private Project project;
         private String associated_entity;
+        private Site site;
+        private boolean deleted;
     }
 
     @Data
     public static class MarkedTechnician {
-        private String emailId;
-        private boolean isTechnician;
+        private String email_id;
+        private boolean is_technician;
         private String smsMail;
         private String phone;
         private String name;
@@ -88,21 +93,24 @@ public class TaskDTO {
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ActualEndTime {
         private String displayValue;
         private String value;
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ActualStartTime {
         private String displayValue;
         private String value;
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Owner {
-        private String emailId;
-        private boolean isTechnician;
+        private String email_id;
+        private boolean is_technician;
         private String smsMail;
         private String phone;
         private String name;
@@ -114,6 +122,7 @@ public class TaskDTO {
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Priority {
         private String color;
         private String name;
@@ -121,9 +130,10 @@ public class TaskDTO {
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class CreatedBy {
-        private String emailId;
-        private boolean isTechnician;
+        private String email_id;
+        private boolean is_technician;
         private String smsMail;
         private String phone;
         private String name;
@@ -135,18 +145,21 @@ public class TaskDTO {
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ScheduledEndTime {
         private String displayValue;
         private String value;
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class CreatedDate {
         private String displayValue;
         private String value;
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class TaskType {
         private String color;
         private String name;
@@ -154,12 +167,14 @@ public class TaskDTO {
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ScheduledStartTime {
         private String displayValue;
         private String value;
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Status {
         private boolean inProgress;
         private String internalName;
@@ -170,8 +185,19 @@ public class TaskDTO {
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Project {
         private String id;
-        private String display_id;
+        private Object display_id;
+    }
+
+    @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Site {
+        private String name;
+        private String location;
+        private boolean deleted;
+        private String id;
+        private boolean is_default;
     }
 }

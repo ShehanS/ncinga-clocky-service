@@ -27,7 +27,7 @@ public class ManageEnginAPIController {
     @Autowired
     private ManageEngineAPIService manageEngineAPIService;
 
-    @PostMapping(path = "/tasks")
+    @PostMapping(path = "/get-tasks")
     public ResponseEntity<ResponseDto> getTasks(
             @RequestBody GeneralRequestDto generalRequestDto,
             @RequestHeader(value = "Authorization", required = false) String refreshToken
@@ -39,6 +39,11 @@ public class ManageEnginAPIController {
 
         try {
             String email = generalRequestDto.getEmail();
+            if (email == null || email.isEmpty()) {
+                ResponseDto responseDto = new ResponseDto(null, null, "Email is required", ResponseCode.GET_TASK_LIST_FAILED);
+                return new ResponseEntity<>(responseDto, HttpStatus.BAD_REQUEST);
+            }
+
             List<TaskDTO.Task> tasks = manageEngineAPIService.getTaskList(refreshToken, email);
             ResponseDto responseDto = new ResponseDto(null, tasks, null, ResponseCode.GET_TASK_SUCCESS);
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
