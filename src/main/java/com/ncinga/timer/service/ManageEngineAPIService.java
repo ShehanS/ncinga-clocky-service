@@ -24,6 +24,7 @@ import com.ncinga.timer.dtos.requestDto.TaskDTO;
 import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,8 +40,6 @@ public class ManageEngineAPIService implements IManageEngine {
         this.restTemplate = restTemplate;
     }
 
-    public List<TaskDTO.Task> getTaskList(String refreshToken, String email) {
-        List<TaskDTO.Task> tasks = new ArrayList<>();
 
         try {
             logger.info("Received request for tasks. Owner Email: {}", email);
