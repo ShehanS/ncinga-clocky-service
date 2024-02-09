@@ -12,7 +12,7 @@ import java.util.List;
 
 public interface IManageEngine {
 
-    List<TaskDTO.Task> getTaskList(String refreshToken, String ownerEmail) throws RefreshTokenHasExpired, JsonProcessingException;
+    List<TaskDTO.Task> getTaskList(String refreshToken, String email, int rowCount, String searchCriteriaField, String searchCriteriaValue, String searchCriteriaCondition) throws RefreshTokenHasExpired, JsonProcessingException;
 
     List<ProjectDto> getProjectList(String refreshToken, String email) throws RefreshTokenHasExpired, JsonProcessingException;
 

@@ -27,9 +27,10 @@ public class ManageEnginAPIController {
     @Autowired
     private ManageEngineAPIService manageEngineAPIService;
 
-    @PostMapping(path = "/tasks")
+    @GetMapping(path = "/tasks")
     public ResponseEntity<ResponseDto> getTasks(
-            @RequestBody GeneralRequestDto generalRequestDto,
+            @RequestParam(value = "email") String email,
+            @RequestParam Map<String, String> params,
             @RequestHeader(value = "Authorization", required = false) String refreshToken
     ) {
         if (refreshToken == null || refreshToken.isEmpty()) {
@@ -38,15 +39,20 @@ public class ManageEnginAPIController {
         }
 
         try {
-            String email = generalRequestDto.getEmail();
-            List<TaskDTO.Task> tasks = manageEngineAPIService.getTaskList(refreshToken, email);
+            int rowCount = Integer.parseInt(params.getOrDefault("row_count", "10"));
+            String searchCriteriaField = params.get("search_criteria_field");
+            String searchCriteriaValue = params.get("search_criteria_value");
+            String searchCriteriaCondition = params.get("search_criteria_condition");
+            List<TaskDTO.Task> tasks = manageEngineAPIService.getTaskList(refreshToken, email, rowCount, searchCriteriaField, searchCriteriaValue, searchCriteriaCondition);
             ResponseDto responseDto = new ResponseDto(null, tasks, null, ResponseCode.GET_TASK_SUCCESS);
+
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
         } catch (Exception e) {
             ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.GET_TASK_FAILED);
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
         }
     }
+
 
 
     @GetMapping(path = "/get-task/{taskId}")

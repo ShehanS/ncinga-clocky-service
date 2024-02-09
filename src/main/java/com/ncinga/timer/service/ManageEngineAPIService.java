@@ -40,7 +40,7 @@ public class ManageEngineAPIService implements IManageEngine {
         this.restTemplate = restTemplate;
     }
 
-    public List<TaskDTO.Task> getTaskList(String refreshToken, String email) {
+    public List<TaskDTO.Task> getTaskList(String refreshToken, String email, int rowCount, String searchCriteriaField, String searchCriteriaValue, String searchCriteriaCondition) {
         List<TaskDTO.Task> tasks = new ArrayList<>();
 
         try {
@@ -51,25 +51,20 @@ public class ManageEngineAPIService implements IManageEngine {
             }
 
             String taskUrl = API + "/tasks";
-            SearchCriteria taskOwner = new SearchCriteria();
-            taskOwner.setField("owner.email_id");
-            taskOwner.setCondition("is");
-            taskOwner.setValue(Collections.singletonList(email).toString());
 
-            SearchCriteria taskStatus = new SearchCriteria();
-            taskStatus.setField("status.name");
-            taskStatus.setCondition("is not");
-            taskStatus.setValue("Closed");
+            SearchCriteria taskOwner = new SearchCriteria();
+            taskOwner.setField(searchCriteriaField);
+            taskOwner.setCondition(searchCriteriaCondition);
+            taskOwner.setValue(searchCriteriaValue);
 
             List<SearchCriteria> criteria = new ArrayList<>();
             criteria.add(taskOwner);
-            criteria.add(taskStatus);
 
             ListInfo listInfo = new ListInfo();
             listInfo.setSearch_criteria(criteria);
-            listInfo.setRow_count(100);
+            listInfo.setRow_count(rowCount);
 
-            com.ncinga.timer.dtos.queryDto.QueryRequest queryRequest =  new com.ncinga.timer.dtos.queryDto.QueryRequest(listInfo);
+            com.ncinga.timer.dtos.queryDto.QueryRequest queryRequest = new com.ncinga.timer.dtos.queryDto.QueryRequest(listInfo);
 
             Object taskResponse = QueryService.executeHTTPRequest(refreshToken, queryRequest, taskUrl);
             logger.info("Task response: {}", taskResponse);
@@ -86,7 +81,6 @@ public class ManageEngineAPIService implements IManageEngine {
                     tasks.add(taskDto);
                 }
             }
-
         } catch (HttpClientErrorException ex) {
             logger.error("HTTP client error. Status code: {}, Response: {}", ex.getRawStatusCode(), ex.getResponseBodyAsString(), ex);
         } catch (JsonProcessingException | RefreshTokenHasExpired e) {
