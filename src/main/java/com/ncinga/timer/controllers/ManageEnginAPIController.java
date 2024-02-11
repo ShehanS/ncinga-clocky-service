@@ -48,7 +48,6 @@ public class ManageEnginAPIController {
             ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.GET_TASK_FAILED);
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
         }
-
     }
 
 

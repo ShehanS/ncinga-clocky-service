@@ -45,18 +45,13 @@ public class ManageEngineAPIService implements IManageEngine {
         try {
             String taskUrl = API + "/tasks";
 
-            // Set up search criteria for owner's email
             SearchCriteria ownerEmailCriteria = new SearchCriteria();
             ownerEmailCriteria.setField("owner.email_id");
             ownerEmailCriteria.setCondition("is");
             ownerEmailCriteria.setValue(email);
 
-            // Other search criteria...
-
             List<SearchCriteria> criteria = new ArrayList<>();
             criteria.add(ownerEmailCriteria);
-
-            // Other criteria...
 
             ListInfo listInfo = new ListInfo();
             listInfo.setSearch_criteria(criteria);
@@ -81,7 +76,6 @@ public class ManageEngineAPIService implements IManageEngine {
                     tasks.add(taskDto);
                 }
             }
-
         } catch (HttpClientErrorException ex) {
             logger.error("HTTP client error. Status code: {}, Response: {}", ex.getRawStatusCode(), ex.getResponseBodyAsString(), ex);
         } catch (JsonProcessingException | RefreshTokenHasExpired e) {
@@ -89,7 +83,6 @@ public class ManageEngineAPIService implements IManageEngine {
         } catch (Exception e) {
             logger.error("An unexpected error occurred: ", e);
         }
-
         return tasks;
     }
 
