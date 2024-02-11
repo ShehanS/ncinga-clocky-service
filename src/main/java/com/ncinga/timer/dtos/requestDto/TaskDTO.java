@@ -1,7 +1,6 @@
 package com.ncinga.timer.dtos.requestDto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.ncinga.timer.dtos.queryDto.SearchCriteria;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,34 +21,26 @@ public class TaskDTO {
     private List<Task> tasks;
 
     @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class ResponseStatus {
         private int statusCode;
         private String status;
     }
 
     @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class ListInfo {
-        private int rowCount;
-        private List<SearchCriteria> searchCriteria;
-
-        public ListInfo(List<SearchCriteria> searchCriteria, int rowCount) {
-            this.searchCriteria = searchCriteria;
-            this.rowCount = rowCount;
-        }
-
-        public ListInfo() {
-
-        }
+        private boolean has_more_rows;
+        private int row_count;
     }
 
-
     @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class Task {
-        private String marked_group;
-        private int index;
         private int percentage_completion;
-        private String display_id;
-        private String percentageCompletion;
         private String estimated_effort_hours;
         private String email_before;
         private String description;
@@ -75,34 +66,35 @@ public class TaskDTO {
         private Project project;
         private String associated_entity;
         private Site site;
-        private boolean deleted;
     }
 
     @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class MarkedTechnician {
         private String email_id;
         private boolean is_technician;
-        private String smsMail;
+        private String sms_mail;
         private String phone;
         private String name;
         private String mobile;
         private String id;
-        private String photoUrl;
-        private boolean isVipUser;
+        private String photo_url;
+        private boolean is_vip_user;
         private Object department;
     }
 
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ActualEndTime {
-        private String displayValue;
+        private String display_value;
         private String value;
     }
 
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ActualStartTime {
-        private String displayValue;
+        private String display_value;
         private String value;
     }
 
@@ -111,13 +103,13 @@ public class TaskDTO {
     public static class Owner {
         private String email_id;
         private boolean is_technician;
-        private String smsMail;
+        private String sms_mail;
         private String phone;
         private String name;
         private String mobile;
         private String id;
-        private String photoUrl;
-        private boolean isVipUser;
+        private String photo_url;
+        private boolean is_vip_user;
         private Object department;
     }
 
@@ -134,27 +126,27 @@ public class TaskDTO {
     public static class CreatedBy {
         private String email_id;
         private boolean is_technician;
-        private String smsMail;
+        private String sms_mail;
         private String phone;
         private String name;
         private String mobile;
         private String id;
-        private String photoUrl;
-        private boolean isVipUser;
+        private String photo_url;
+        private boolean is_vip_user;
         private Object department;
     }
 
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ScheduledEndTime {
-        private String displayValue;
+        private String display_value;
         private String value;
     }
 
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class CreatedDate {
-        private String displayValue;
+        private String display_value;
         private String value;
     }
 
@@ -169,16 +161,16 @@ public class TaskDTO {
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ScheduledStartTime {
-        private String displayValue;
+        private String display_value;
         private String value;
     }
 
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Status {
-        private boolean inProgress;
-        private String internalName;
-        private boolean stopTimer;
+        private boolean in_progress;
+        private String internal_name;
+        private boolean stop_timer;
         private String color;
         private String name;
         private String id;

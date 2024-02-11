@@ -40,41 +40,31 @@ public class ManageEngineAPIService implements IManageEngine {
         this.restTemplate = restTemplate;
     }
 
-    public List<TaskDTO.Task> getTaskList(String refreshToken, String email) {
+    public List<TaskDTO.Task> getTaskListByEmail(String refreshToken, String email) {
         List<TaskDTO.Task> tasks = new ArrayList<>();
         try {
-            logger.info("Received request for tasks. Owner Email: {}", email);
-
-            if (email == null || email.trim().isEmpty()) {
-                return tasks;
-            }
-
             String taskUrl = API + "/tasks";
-            SearchCriteria taskOwner = new SearchCriteria();
-            taskOwner.setField("owner.email_id");
-            taskOwner.setCondition("is");
-            taskOwner.setValue(email);
 
-            SearchCriteria taskModule = new SearchCriteria();
-            taskModule.setField("module");
-            taskModule.setCondition("is");
-            taskModule.setValue("General");
+            // Set up search criteria for owner's email
+            SearchCriteria ownerEmailCriteria = new SearchCriteria();
+            ownerEmailCriteria.setField("owner.email_id");
+            ownerEmailCriteria.setCondition("is");
+            ownerEmailCriteria.setValue(email);
 
-            SearchCriteria taskStatus = new SearchCriteria();
-            taskStatus.setField("status.name");
-            taskStatus.setCondition("is not");
-            taskStatus.setValue("Closed");
+            // Other search criteria...
 
             List<SearchCriteria> criteria = new ArrayList<>();
-            criteria.add(taskOwner);
-            criteria.add(taskModule);
-            criteria.add(taskStatus);
+            criteria.add(ownerEmailCriteria);
+
+            // Other criteria...
 
             ListInfo listInfo = new ListInfo();
             listInfo.setSearch_criteria(criteria);
             listInfo.setRow_count(100);
 
-            com.ncinga.timer.dtos.queryDto.QueryRequest queryRequest =  new com.ncinga.timer.dtos.queryDto.QueryRequest(listInfo);
+            com.ncinga.timer.dtos.queryDto.QueryRequest queryRequest =
+                    new com.ncinga.timer.dtos.queryDto.QueryRequest(listInfo);
+            logger.info("Query Request: {}", queryRequest);
 
             Object taskResponse = QueryService.executeHTTPRequest(refreshToken, queryRequest, taskUrl);
             logger.info("Task response: {}", taskResponse);
@@ -102,6 +92,8 @@ public class ManageEngineAPIService implements IManageEngine {
 
         return tasks;
     }
+
+
 
     public Object getTaskById(String refreshToken, String taskId) throws RefreshTokenHasExpired {
         String taskUrl = API + "/tasks/" + taskId;
@@ -223,6 +215,8 @@ public class ManageEngineAPIService implements IManageEngine {
             }
         }
     }
+
+
 
     public List<ProjectDto> getProjectList(String refreshToken, String email) throws RefreshTokenHasExpired, JsonProcessingException {
         String taskApiUrl = API + "/tasks";

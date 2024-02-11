@@ -18,7 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import static com.ncinga.timer.dtos.requestDto.TaskDTO.logger;
 
 
@@ -29,10 +28,10 @@ public class ManageEnginAPIController {
     @Autowired
     private ManageEngineAPIService manageEngineAPIService;
 
-    @PostMapping(path = "/get-tasks")
+    @GetMapping(path = "/get-tasks")
     public ResponseEntity<ResponseDto> getTasks(
-            @RequestBody GeneralRequestDto generalRequestDto,
-            @RequestHeader(value = "Authorization", required = false) String refreshToken
+            @RequestHeader(value = "Authorization", required = false) String refreshToken,
+            @RequestParam(value = "email") String email
     ) {
         if (refreshToken == null || refreshToken.isEmpty()) {
             ResponseDto responseDto = new ResponseDto(null, null, "Authorization key is null or empty", ResponseCode.AUTHORIZATION_TOKEN_NULL);
@@ -40,20 +39,18 @@ public class ManageEnginAPIController {
         }
 
         try {
-            String email = generalRequestDto.getEmail();
-            if (email == null || email.isEmpty()) {
-                ResponseDto responseDto = new ResponseDto(null, null, "Email is required", ResponseCode.GET_TASK_LIST_FAILED);
-                return new ResponseEntity<>(responseDto, HttpStatus.BAD_REQUEST);
-            }
-
-            List<TaskDTO.Task> tasks = manageEngineAPIService.getTaskList(refreshToken, email);
+            List<TaskDTO.Task> tasks = manageEngineAPIService.getTaskListByEmail(refreshToken, email);
+            logger.info("Retrieved tasks: {}", tasks);
             ResponseDto responseDto = new ResponseDto(null, tasks, null, ResponseCode.GET_TASK_SUCCESS);
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
         } catch (Exception e) {
+            logger.error("Error retrieving tasks: {}", e.getMessage(), e);
             ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.GET_TASK_FAILED);
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
         }
+
     }
+
 
     @GetMapping(path = "/get-task/{taskId}")
     public ResponseEntity<ResponseDto> getTaskById(
