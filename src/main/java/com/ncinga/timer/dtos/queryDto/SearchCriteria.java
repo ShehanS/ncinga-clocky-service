@@ -14,4 +14,6 @@ public class SearchCriteria {
     private String condition;
     private String value;
 
+    public void setLogicalOperator(String and) {
+    }
 }
