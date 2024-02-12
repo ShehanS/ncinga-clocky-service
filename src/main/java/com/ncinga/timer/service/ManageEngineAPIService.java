@@ -24,9 +24,7 @@ import com.ncinga.timer.dtos.requestDto.TaskDTO;
 import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.ncinga.timer.dtos.requestDto.TaskDTO.logger;
 
@@ -40,23 +38,18 @@ public class ManageEngineAPIService implements IManageEngine {
         this.restTemplate = restTemplate;
     }
 
-    public List<TaskDTO.Task> getTaskListByEmail(String refreshToken, String email) {
+    public List<TaskDTO.Task> getTaskList(String refreshToken) {
         List<TaskDTO.Task> tasks = new ArrayList<>();
         try {
             String taskUrl = API + "/tasks";
 
-            // Set up search criteria for owner's email
-            SearchCriteria ownerEmailCriteria = new SearchCriteria();
-            ownerEmailCriteria.setField("owner.email_id");
-            ownerEmailCriteria.setCondition("is");
-            ownerEmailCriteria.setValue(email);
-
-            // Other search criteria...
+            SearchCriteria moduleCriteria = new SearchCriteria();
+            moduleCriteria.setField("module");
+            moduleCriteria.setCondition("is");
+            moduleCriteria.setValue("General");
 
             List<SearchCriteria> criteria = new ArrayList<>();
-            criteria.add(ownerEmailCriteria);
-
-            // Other criteria...
+            criteria.add(moduleCriteria);
 
             ListInfo listInfo = new ListInfo();
             listInfo.setSearch_criteria(criteria);
@@ -92,6 +85,7 @@ public class ManageEngineAPIService implements IManageEngine {
 
         return tasks;
     }
+
 
 
 
@@ -300,6 +294,7 @@ public class ManageEngineAPIService implements IManageEngine {
 
         return filterProjects;
     }
+
 
 
     @Override

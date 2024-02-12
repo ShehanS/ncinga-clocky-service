@@ -28,10 +28,9 @@ public class ManageEnginAPIController {
     @Autowired
     private ManageEngineAPIService manageEngineAPIService;
 
-    @GetMapping(path = "/get-tasks")
+    @PostMapping(path = "/get-tasks")
     public ResponseEntity<ResponseDto> getTasks(
-            @RequestHeader(value = "Authorization", required = false) String refreshToken,
-            @RequestParam(value = "email") String email
+            @RequestHeader(value = "Authorization", required = false) String refreshToken
     ) {
         if (refreshToken == null || refreshToken.isEmpty()) {
             ResponseDto responseDto = new ResponseDto(null, null, "Authorization key is null or empty", ResponseCode.AUTHORIZATION_TOKEN_NULL);
@@ -39,17 +38,17 @@ public class ManageEnginAPIController {
         }
 
         try {
-            List<TaskDTO.Task> tasks = manageEngineAPIService.getTaskListByEmail(refreshToken, email);
-            logger.info("Retrieved tasks: {}", tasks);
+            List<TaskDTO.Task> tasks = manageEngineAPIService.getTaskList(refreshToken);
             ResponseDto responseDto = new ResponseDto(null, tasks, null, ResponseCode.GET_TASK_SUCCESS);
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
         } catch (Exception e) {
-            logger.error("Error retrieving tasks: {}", e.getMessage(), e);
             ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.GET_TASK_FAILED);
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
         }
-
     }
+
+
+
 
 
     @GetMapping(path = "/get-task/{taskId}")
