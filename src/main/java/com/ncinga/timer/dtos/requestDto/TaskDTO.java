@@ -66,6 +66,10 @@ public class TaskDTO {
         private Project project;
         private String associated_entity;
         private Site site;
+        private String group;
+        private String index;
+        private String marked_group;
+        private boolean deleted;
     }
 
     @Data

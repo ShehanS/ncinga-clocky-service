@@ -11,6 +11,5 @@ import lombok.NoArgsConstructor;
 public class QueryRequest {
     private ListInfo list_info;
 
-    public QueryRequest(TaskDTO.ListInfo listInfo) {
-    }
+
 }

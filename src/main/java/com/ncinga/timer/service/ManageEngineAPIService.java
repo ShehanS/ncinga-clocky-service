@@ -57,10 +57,8 @@ public class ManageEngineAPIService implements IManageEngine {
 
             com.ncinga.timer.dtos.queryDto.QueryRequest queryRequest =
                     new com.ncinga.timer.dtos.queryDto.QueryRequest(listInfo);
-            logger.info("Query Request: {}", queryRequest);
 
             Object taskResponse = QueryService.executeHTTPRequest(refreshToken, queryRequest, taskUrl);
-            logger.info("Task response: {}", taskResponse);
 
             ObjectMapper objectMapper = new ObjectMapper();
             String tasksString = objectMapper.writeValueAsString(taskResponse);

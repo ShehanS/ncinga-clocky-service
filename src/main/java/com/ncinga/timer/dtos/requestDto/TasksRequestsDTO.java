@@ -8,8 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TasksRequestsDTO {
-    private  String email;
+    private String email_id;
     private String module;
-
 
 }
