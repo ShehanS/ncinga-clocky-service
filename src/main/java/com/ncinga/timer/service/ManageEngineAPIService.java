@@ -127,8 +127,8 @@ public class ManageEngineAPIService implements IManageEngine {
         String jsonString = objectMapper.writeValueAsString(newTask);
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", refreshToken);
-        headers.set("Content-Type", "application/json");
-        headers.set("Accept", "application/json");
+        headers.set("Content-Type", "application/x-www-form-urlencoded");
+        headers.set("Accept", "application/vnd.manageengine.sdp.v3+json");
 
         HttpEntity<String> requestEntity = new HttpEntity<>(jsonString, headers);
 
