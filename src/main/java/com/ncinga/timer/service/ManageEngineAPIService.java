@@ -36,6 +36,51 @@ public class ManageEngineAPIService implements IManageEngine {
         this.restTemplate = restTemplate;
     }
 
+
+    public WorkLogResponseDto getWorkLogsByPage(String refreshToken, String projectId, String taskId, int pageIndex, int pageSize) throws RefreshTokenHasExpired {
+        // Construct the URI with pagination parameters
+        String apiUrl = API + "/projects/" + projectId + "/tasks/" + taskId + "/worklogs";
+        URI uri = UriComponentsBuilder.fromUriString(apiUrl)
+                .queryParam("input_data", "{ \n" +
+                        "        \"list_info\" : { \n" +
+                        "            \"start_index\": " + (pageIndex * pageSize) + ",\n" +
+                        "            \"row_count\": " + pageSize + "\n" +
+                        "        } \n" +
+                        "      }")
+                .build()
+                .encode()
+                .toUri();
+
+        // Set up headers and request entity
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", refreshToken);
+        headers.set("Content-Type", "application/x-www-form-urlencoded");
+        headers.set("Accept", "application/vnd.manageengine.sdp.v3+json");
+        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+
+        // Make the API call
+        try {
+            ResponseEntity<WorkLogResponseDto> responseEntity = restTemplate.exchange(
+                    uri,
+                    HttpMethod.GET,
+                    requestEntity,
+                    WorkLogResponseDto.class
+            );
+            // Extract response status and body
+            HttpStatusCode statusCode = responseEntity.getStatusCode();
+            return responseEntity.getBody();
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            // Handle errors
+            HttpStatusCode statusCode = e.getStatusCode();
+            if (statusCode == HttpStatus.UNAUTHORIZED) {
+                throw new RefreshTokenHasExpired("Your refresh token has expired, Please refresh page");
+            } else {
+                throw e;
+            }
+        }
+    }
+
+
     public List<ProjectDto> getProjectList(String refreshToken, String email) throws RefreshTokenHasExpired, JsonProcessingException {
         String taskApiUrl = API + "/tasks";
         String projectApiUrl = API + "/projects";

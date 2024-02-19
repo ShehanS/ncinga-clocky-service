@@ -22,6 +22,29 @@ public class ManageEnginAPIController {
     @Autowired
     private ManageEngineAPIService manageEngineAPIService;
 
+
+
+    @GetMapping("/get-page-worklogs")
+    public ResponseEntity<?> getWorkLogs(
+            @RequestHeader(value = "Authorization", required = false) String refreshToken,
+            @RequestParam String projectId,
+            @RequestParam String taskId,
+            @RequestParam int pageIndex,
+            @RequestParam int pageSize) {
+
+        try {
+            WorkLogResponseDto workLogs = manageEngineAPIService.getWorkLogsByPage(refreshToken, projectId, taskId, pageIndex, pageSize);
+            return ResponseEntity.ok().body(workLogs);
+        } catch (RefreshTokenHasExpired e) {
+            ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.REFRESH_TOKEN_HAS_EXPIRED);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(responseDto);
+        } catch (Exception e) {
+            ResponseDto responseDto = new ResponseDto(null, null, e.getMessage(), ResponseCode.GET_ALL_WORKLOG_FAILED);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseDto);
+        }
+    }
+
+
     @PostMapping(path = "/get-projects")
     public ResponseEntity<ResponseDto> getProjects(@RequestBody GeneralRequestDto generalRequestDto, @RequestHeader(value = "Authorization", required = false) String refreshToken) {
         if (refreshToken == null || refreshToken.isEmpty()) {
