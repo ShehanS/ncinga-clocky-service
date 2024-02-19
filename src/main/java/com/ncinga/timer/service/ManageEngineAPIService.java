@@ -38,7 +38,6 @@ public class ManageEngineAPIService implements IManageEngine {
 
 
     public WorkLogResponseDto getWorkLogsByPage(String refreshToken, String projectId, String taskId, int pageIndex, int pageSize) throws RefreshTokenHasExpired {
-        // Construct the URI with pagination parameters
         String apiUrl = API + "/projects/" + projectId + "/tasks/" + taskId + "/worklogs";
         URI uri = UriComponentsBuilder.fromUriString(apiUrl)
                 .queryParam("input_data", "{ \n" +
@@ -66,11 +65,11 @@ public class ManageEngineAPIService implements IManageEngine {
                     requestEntity,
                     WorkLogResponseDto.class
             );
-            // Extract response status and body
+
             HttpStatusCode statusCode = responseEntity.getStatusCode();
             return responseEntity.getBody();
         } catch (HttpClientErrorException | HttpServerErrorException e) {
-            // Handle errors
+
             HttpStatusCode statusCode = e.getStatusCode();
             if (statusCode == HttpStatus.UNAUTHORIZED) {
                 throw new RefreshTokenHasExpired("Your refresh token has expired, Please refresh page");
