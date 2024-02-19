@@ -24,13 +24,10 @@ public class ManageEnginAPIController {
 
 
 
-    @GetMapping("/get-page-worklogs")
+    @GetMapping("/projects/{projectId}/tasks/{taskId}/get-page-worklogs")
     public ResponseEntity<?> getWorkLogs(
             @RequestHeader(value = "Authorization", required = false) String refreshToken,
-            @RequestParam String projectId,
-            @RequestParam String taskId,
-            @RequestParam int pageIndex,
-            @RequestParam int pageSize) {
+            @PathVariable String projectId, @PathVariable String taskId, @RequestParam int pageIndex, @RequestParam int pageSize) {
 
         try {
             WorkLogResponseDto workLogs = manageEngineAPIService.getWorkLogsByPage(refreshToken, projectId, taskId, pageIndex, pageSize);
