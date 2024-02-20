@@ -30,7 +30,7 @@ public class ManageEnginAPIController {
             @PathVariable String projectId, @PathVariable String taskId, @RequestParam int pageIndex, @RequestParam int pageSize) {
 
         try {
-            WorkLogResponseDto workLogs = manageEngineAPIService.getWorkLogsByPage(refreshToken, projectId, taskId, pageIndex, pageSize);
+            Object workLogs = manageEngineAPIService.getWorkLogsByPage(refreshToken, projectId, taskId, pageIndex, pageSize);
             ResponseDto responseDto = new ResponseDto(null, workLogs, null, ResponseCode.GET_ALL_WORKLOG_SUCCESS);
             return new ResponseEntity<>(responseDto, HttpStatus.OK);
         } catch (RefreshTokenHasExpired e) {

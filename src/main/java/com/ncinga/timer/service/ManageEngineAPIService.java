@@ -37,7 +37,7 @@ public class ManageEngineAPIService implements IManageEngine {
     }
 
 
-    public WorkLogResponseDto getWorkLogsByPage(String refreshToken, String projectId, String taskId, int pageIndex, int pageSize) throws RefreshTokenHasExpired {
+    public Object getWorkLogsByPage(String refreshToken, String projectId, String taskId, int pageIndex, int pageSize) throws RefreshTokenHasExpired {
         String apiUrl = API + "/projects/" + projectId + "/tasks/" + taskId + "/worklogs";
         URI uri = UriComponentsBuilder.fromUriString(apiUrl)
                 .queryParam("input_data", "{ \n" +
@@ -59,11 +59,11 @@ public class ManageEngineAPIService implements IManageEngine {
 
         // Make the API call
         try {
-            ResponseEntity<WorkLogResponseDto> responseEntity = restTemplate.exchange(
+            ResponseEntity<Object> responseEntity = restTemplate.exchange(
                     uri,
                     HttpMethod.GET,
                     requestEntity,
-                    WorkLogResponseDto.class
+                    Object.class
             );
 
             HttpStatusCode statusCode = responseEntity.getStatusCode();
