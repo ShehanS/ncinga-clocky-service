@@ -518,7 +518,7 @@ public class ManageEngineAPIService implements IManageEngine {
             throw new IllegalArgumentException("Assignee is required. Please assign the worklog to a user.");
         }
 
-        if (workLogRequestDto.getWorklog().getWorklog_type() == null) {
+        if (workLogRequestDto.getWorklog().getWorklog_type().getId().isEmpty() && workLogRequestDto.getWorklog().getWorklog_type().getId()=="") {
             throw new IllegalArgumentException("Worklog type is required. Please select a type for the worklog.");
         }
 
