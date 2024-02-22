@@ -501,6 +501,29 @@ public class ManageEngineAPIService implements IManageEngine {
 
     @Override
     public WorkLogResponseDto addWorkLog(String refreshToken, String projectId, String taskId, WorkLogRequestDto workLogRequestDto) throws RefreshTokenHasExpired, JsonProcessingException {
+
+        if (workLogRequestDto.getWorklog().getDescription() == null || workLogRequestDto.getWorklog().getDescription().trim().isEmpty()) {
+            throw new IllegalArgumentException("Description is required. Please provide a description for the worklog.");
+        }
+
+        if (workLogRequestDto.getWorklog().getStart_time() == null) {
+            throw new IllegalArgumentException("Start time is required. Please provide a start time for the worklog.");
+        }
+
+        if (workLogRequestDto.getWorklog().getEnd_time() == null) {
+            throw new IllegalArgumentException("End time is required. Please provide an end time for the worklog.");
+        }
+
+        if (workLogRequestDto.getWorklog().getOwner() == null) {
+            throw new IllegalArgumentException("Assignee is required. Please assign the worklog to a user.");
+        }
+
+        if (workLogRequestDto.getWorklog().getWorklog_type() == null) {
+            throw new IllegalArgumentException("Worklog type is required. Please select a type for the worklog.");
+        }
+
+
+
         long currentEpoch = Instant.now().getEpochSecond() * 1000;
         Long differenceInDays = Validator.calculateDifferenceInDays(currentEpoch, Long.parseLong(workLogRequestDto.getWorklog().start_time.getValue()));
         if(differenceInDays >= 15){
@@ -658,6 +681,23 @@ public class ManageEngineAPIService implements IManageEngine {
 
     @Override
     public ProjectTask addTask(String refreshToken, String projectId, AddEditTaskDto task) throws RefreshTokenHasExpired, JsonProcessingException {
+        if (task.getTask().getTitle() == null || task.getTask().getTitle().trim().isEmpty()) {
+            throw new IllegalArgumentException("Title is required. Please provide a title for the task.");
+        }
+
+        if (task.getTask().getDescription() == null || task.getTask().getDescription().trim().isEmpty()) {
+            throw new IllegalArgumentException("Description is required. Please provide a description for the task.");
+        }
+
+        if (task.getTask().getPriority() == null || task.getTask().getPriority().getName() == null || task.getTask().getPriority().getName().trim().isEmpty()) {
+            throw new IllegalArgumentException("Priority is required. Please select a priority for the task.");
+        }
+
+        if (task.getTask().getStatus() == null || task.getTask().getStatus().getName() == null || task.getTask().getStatus().getName().trim().isEmpty()) {
+            throw new IllegalArgumentException("Status is required. Please select a status for the task.");
+        }
+
+
         long currentEpoch = Instant.now().getEpochSecond() * 1000;
         Long differenceInDays = Validator.calculateDifferenceInDays(currentEpoch, Long.parseLong(task.getTask().getActual_start_time().getValue()));
         if(differenceInDays >= 15){
