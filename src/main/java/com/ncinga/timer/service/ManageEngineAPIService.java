@@ -40,7 +40,7 @@ public class ManageEngineAPIService implements IManageEngine {
     public Object getWorkLogsByPage(String refreshToken, String projectId, String taskId, int pageIndex, int pageSize) throws RefreshTokenHasExpired {
         String apiUrl = API + "/projects/" + projectId + "/tasks/" + taskId + "/worklogs";
 
-        int startIndex = (pageIndex - 1) * pageSize;
+        int startIndex = Math.max(0, (pageIndex - 1) * pageSize) + 1;
 
         URI uri = UriComponentsBuilder.fromUriString(apiUrl)
                 .queryParam("input_data", "{ \n" +
